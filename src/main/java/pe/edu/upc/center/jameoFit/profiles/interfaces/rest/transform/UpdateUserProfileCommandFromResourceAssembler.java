@@ -1,0 +1,22 @@
+package pe.edu.upc.center.jameoFit.profiles.interfaces.rest.transform;
+
+import pe.edu.upc.center.jameoFit.profiles.domain.model.commands.UpdateUserProfileCommand;
+import pe.edu.upc.center.jameoFit.profiles.interfaces.rest.resources.CreateUserProfileResource;
+public class UpdateUserProfileCommandFromResourceAssembler {
+
+    /**
+     * Convierte un recurso REST y un ID a UpdateUserProfileCommand.
+     */
+    // En UpdateUserProfileCommandFromResourceAssembler.java
+    public static UpdateUserProfileCommand toCommandFromResource(Long profileId, CreateUserProfileResource resource) {
+        return new UpdateUserProfileCommand(
+                profileId,
+                resource.gender(),
+                resource.height(),
+                resource.weight(),
+                resource.userScore(),
+                resource.activityLevelId(),
+                Long.valueOf(resource.objectiveId())
+        );
+    }
+}
