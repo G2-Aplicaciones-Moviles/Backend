@@ -12,7 +12,7 @@ import pe.edu.upc.center.jameoFit.recommendations.domain.model.valueobjects.Reco
 import pe.edu.upc.center.jameoFit.recommendations.domain.services.RecommendationCommandService;
 import pe.edu.upc.center.jameoFit.recommendations.domain.services.RecommendationTemplateService;
 import pe.edu.upc.center.jameoFit.recommendations.infrastructure.persistence.jpa.repositories.RecommendationRepository;
-import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalProfileService;
+import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalUserProfileService;
 import pe.edu.upc.center.jameoFit.recommendations.interfaces.rest.resources.UpdateRecommendationResource;
 
 import java.util.List;
@@ -24,15 +24,15 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
     private final RecommendationRepository recommendationRepository;
     private final RecommendationTemplateService templateService;
-    private final ExternalProfileService externalProfileService;
+    private final ExternalUserProfileService externalUserProfileService;
 
     public RecommendationCommandServiceImpl(
             RecommendationRepository recommendationRepository,
             RecommendationTemplateService templateService,
-            ExternalProfileService externalProfileService) {
+            ExternalUserProfileService externalUserProfileService) {
         this.recommendationRepository = recommendationRepository;
         this.templateService = templateService;
-        this.externalProfileService = externalProfileService;
+        this.externalUserProfileService = externalUserProfileService;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
     @Override
     public int handle(AssignRecommendationCommand command) {
-        externalProfileService.validateProfileExists(command.userId());
+        externalUserProfileService.validateProfileExists(command.userId());
 
         Optional<RecommendationTemplate> templateOpt = templateService.findById(command.templateId());
         if (templateOpt.isEmpty()) {
@@ -80,7 +80,7 @@ public class RecommendationCommandServiceImpl implements RecommendationCommandSe
 
     @Override
     public List<Recommendation> handleAutoAssign(AutoAssignRecommendationsCommand command) {
-        externalProfileService.validateProfileExists(command.userId());
+        externalUserProfileService.validateProfileExists(command.userId());
 
         List<Recommendation> baseRecommendations = recommendationRepository.findByUserIdIsNull();
 

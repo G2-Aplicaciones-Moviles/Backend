@@ -10,14 +10,15 @@ public class UserProfileResourceFromEntityAssembler {
 
     public static UserProfileResource toResourceFromEntity(UserProfile entity) {
         return new UserProfileResource(
-                entity.getId(), // ✅ era String, ahora int (coincide con record)
+                entity.getId(),
                 entity.getGender(),
                 entity.getHeight(),
                 entity.getWeight(),
                 entity.getUserScore(),
-                entity.getActivityLevel().getId(), // ✅ getId() ya devuelve Long
+                entity.getBirthDate(),  // ✅ String
+                entity.getActivityLevel().getId(),
                 entity.getActivityLevel().getName(),
-                entity.getObjective().getId(), // ✅ getId() ya devuelve int
+                entity.getObjective().getId(),
                 entity.getObjective().getObjectiveName(),
                 entity.getAllergies().stream()
                         .map(a -> a.getName())

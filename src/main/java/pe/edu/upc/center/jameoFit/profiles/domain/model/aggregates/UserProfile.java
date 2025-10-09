@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.commands.CreateUserProfileCommand;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.Entities.Objective;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.Entities.ActivityLevel;
@@ -53,6 +52,11 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
     @Column(name = "user_score", nullable = false)
     private int userScore;
 
+    @Getter
+    @NotNull
+    @Column(name = "birth_date", length = 25, nullable = false)
+    private String birthDate; // ✅ nuevo
+
     // RELACIONES (ENTITIES)
     @Getter
     @ManyToOne(fetch = FetchType.EAGER)
@@ -82,7 +86,8 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
                        double weight,
                        ActivityLevel activityLevel,
                        Objective objective,
-                       int userScore) {
+                       int userScore,
+                       String birthDate) { // ✅ agregado
         this.userId = Objects.requireNonNull(userId, "userId required");
         this.gender = Objects.requireNonNull(gender, "gender required");
         this.height = height;
@@ -90,6 +95,7 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
         this.objective = Objects.requireNonNull(objective, "objective required");
         this.userScore = userScore;
+        this.birthDate = Objects.requireNonNull(birthDate, "birthDate required"); // ✅ asignado
         this.allergies = new ArrayList<>();
     }
 
@@ -106,6 +112,7 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.height = command.height();
         this.weight = command.weight();
         this.userScore = command.userScore();
+        this.birthDate = Objects.requireNonNull(command.birthDate(), "birthDate required"); // ✅ asignado
         this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
         this.objective = Objects.requireNonNull(objective, "objective required");
         this.allergies = new ArrayList<>();
@@ -115,13 +122,15 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
      * Actualiza campos importantes del perfil. Devuelve this para permitir encadenamiento si se desea.
      */
     public UserProfile updateProfile(String gender, double height, double weight,
-                                     ActivityLevel activityLevel, Objective objective, int userScore) {
+                                     ActivityLevel activityLevel, Objective objective,
+                                     int userScore, String birthDate) { // ✅ agregado
         this.gender = Objects.requireNonNull(gender, "gender required");
         this.height = height;
         this.weight = weight;
         this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
         this.objective = Objects.requireNonNull(objective, "objective required");
         this.userScore = userScore;
+        this.birthDate = Objects.requireNonNull(birthDate, "birthDate required"); // ✅ asignado
         return this;
     }
 

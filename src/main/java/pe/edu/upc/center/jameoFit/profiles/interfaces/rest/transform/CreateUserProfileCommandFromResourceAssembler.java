@@ -7,14 +7,16 @@ public class CreateUserProfileCommandFromResourceAssembler {
 
     public static CreateUserProfileCommand toCommandFromResource(CreateUserProfileResource resource) {
         return new CreateUserProfileCommand(
-                resource.userId(),         // ahora incluido
+                resource.userId(),
                 resource.gender(),
                 resource.height(),
                 resource.weight(),
                 resource.userScore(),
                 resource.activityLevelId(),
                 resource.objectiveId(),
-                resource.allergyIds()
+                resource.allergyIds(),
+                resource.birthDate() // ✅ agregado
         );
+
     }
 }

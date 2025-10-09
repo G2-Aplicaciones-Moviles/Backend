@@ -1,6 +1,6 @@
 package pe.edu.upc.center.jameoFit.tracking.application.internal.commandservices;
 
-import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalProfileService;
+import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalUserProfileService;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.MacronutrientValues;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.TrackingGoal;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.commands.*;
@@ -20,20 +20,20 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
 
     private final TrackingGoalRepository trackingGoalRepository;
     private final MacronutrientValuesRepository macronutrientValuesRepository;
-    private final ExternalProfileService externalProfileService;
+    private final ExternalUserProfileService externalUserProfileService;
 
     public TrackingGoalCommandServiceImpl(TrackingGoalRepository trackingGoalRepository,
                                           MacronutrientValuesRepository macronutrientValuesRepository,
-                                          ExternalProfileService externalProfileService) {
+                                          ExternalUserProfileService externalUserProfileService) {
         this.trackingGoalRepository = trackingGoalRepository;
         this.macronutrientValuesRepository = macronutrientValuesRepository;
-        this.externalProfileService = externalProfileService;
+        this.externalUserProfileService = externalUserProfileService;
     }
 
     @Override
     public Long handle(CreateTrackingGoalCommand command) {
         // Validar que el perfil existe
-        externalProfileService.validateProfileExists(command.profile().userId());
+        externalUserProfileService.validateProfileExists(command.profile().userId());
 
         if (trackingGoalRepository.existsByUserId(command.profile())) {
             throw new IllegalArgumentException("Tracking goal already exists for user: " + command.profile());
@@ -46,7 +46,7 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
 
     public void handle(UpdateTrackingGoalCommand command) {
         // Validar que el perfil existe
-        externalProfileService.validateProfileExists(command.userId().userId());
+        externalUserProfileService.validateProfileExists(command.userId().userId());
 
         Optional<TrackingGoal> trackingGoalOpt = trackingGoalRepository.findByUserId(command.userId());
 
@@ -81,7 +81,7 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
      */
     public Long createTrackingGoalFromProfile(Long profileId) {
         // Obtener el objetivo del perfil y validar que existe
-        String objectiveName = externalProfileService.getValidatedObjectiveName(profileId);
+        String objectiveName = externalUserProfileService.getValidatedObjectiveName(profileId);
 
         // Mapear el objetivo del perfil a un GoalType
         GoalTypes goalType = mapObjectiveToGoalType(objectiveName);
@@ -112,7 +112,7 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
      */
     public void updateTrackingGoalFromProfile(Long profileId) {
         // Obtener el objetivo del perfil y validar que existe
-        String objectiveName = externalProfileService.getValidatedObjectiveName(profileId);
+        String objectiveName = externalUserProfileService.getValidatedObjectiveName(profileId);
 
         // Mapear el objetivo del perfil a un GoalType
         GoalTypes goalType = mapObjectiveToGoalType(objectiveName);

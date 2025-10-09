@@ -2,7 +2,7 @@ package pe.edu.upc.center.jameoFit.tracking.application.internal.commandservices
 
 
 import org.springframework.context.annotation.Lazy;
-import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalProfileService;
+import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalUserProfileService;
 import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalRecipeService;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.MacronutrientValues;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.MealPlanType;
@@ -27,19 +27,19 @@ public class TrackingCommandServiceImpl implements TrackingCommandService {
     private final TrackingGoalRepository trackingGoalRepository;
     private final MacronutrientValuesRepository macronutrientValuesRepository;
     private final TrackingMealPlanTypeRepository trackingMealPlanTypeRepository;
-    ExternalProfileService externalProfileService;
+    ExternalUserProfileService externalUserProfileService;
     private final ExternalRecipeService externalRecipeService;
 
     public TrackingCommandServiceImpl(TrackingRepository trackingRepository, TrackingMealPlanEntryRepository mealPlanEntryRepository,
                                       TrackingGoalRepository trackingGoalRepository, MacronutrientValuesRepository macronutrientValuesRepository,
-                                      TrackingMealPlanTypeRepository mealPlanTypeRepository, ExternalProfileService externalProfileService,
+                                      TrackingMealPlanTypeRepository mealPlanTypeRepository, ExternalUserProfileService externalUserProfileService,
                                       @Lazy ExternalRecipeService externalRecipeService) {
         this.trackingRepository = trackingRepository;
         this.trackingMealPlanEntryRepository = mealPlanEntryRepository;
         this.trackingGoalRepository = trackingGoalRepository;
         this.macronutrientValuesRepository = macronutrientValuesRepository;
         this.trackingMealPlanTypeRepository = mealPlanTypeRepository;
-        this.externalProfileService = externalProfileService;
+        this.externalUserProfileService = externalUserProfileService;
         this.externalRecipeService = externalRecipeService;
     }
 
@@ -165,7 +165,7 @@ public class TrackingCommandServiceImpl implements TrackingCommandService {
     public int handle(CreateTrackingCommand command) {
 
         // NUEVA VERIFICACIÓN
-        if (!externalProfileService.existsByUserId(command.profile())) {
+        if (!externalUserProfileService.existsByUserId(command.profile())) {
             throw new IllegalArgumentException("User does not exist in Profile bounded context: " + command.profile().userId());
         }
 

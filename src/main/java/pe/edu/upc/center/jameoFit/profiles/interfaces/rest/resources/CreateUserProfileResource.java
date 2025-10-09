@@ -10,5 +10,7 @@ public record CreateUserProfileResource(
         int userScore,
         Long activityLevelId,
         Long objectiveId,
-        List<Long> allergyIds
+        List<Long> allergyIds,
+        String birthDate // ✅ nuevo
+
 ) {}

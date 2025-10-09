@@ -10,6 +10,7 @@ import pe.edu.upc.center.jameoFit.tracking.domain.model.valueobjects.GoalTypes;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.valueobjects.UserId;
 import pe.edu.upc.center.jameoFit.tracking.infrastructure.persistence.jpa.repositories.MacronutrientValuesRepository;
 import pe.edu.upc.center.jameoFit.tracking.interfaces.rest.resources.*;
+import pe.edu.upc.center.jameoFit.tracking.interfaces.rest.transform.CreateTrackingGoalCommandFromResourceAssembler;
 import pe.edu.upc.center.jameoFit.tracking.interfaces.rest.transform.MacronutrientValuesResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -180,29 +181,16 @@ public class TrackingGoalController {
                     @ApiResponse(responseCode = "400", description = "Invalid input data")
             }
     )
+
     @PostMapping
     public ResponseEntity<Long> createTrackingGoal(@RequestBody CreateTrackingGoalResource resource) {
-        var userId = new UserId(resource.userId());
+        // Transformar el Resource a Command usando el Assembler
+        var command = CreateTrackingGoalCommandFromResourceAssembler.toCommand(resource);
 
-        var createMacroCommand = new CreateMacronutrientValuesCommand(
-                null,
-                resource.targetMacros().calories(),
-                resource.targetMacros().carbs(),
-                resource.targetMacros().proteins(),
-                resource.targetMacros().fats()
-        );
+        // Ejecutar la lógica del dominio
+        Long goalId = trackingGoalCommandService.handle(command);
 
-        Long macroId = macronutrientValuesCommandService.handle(createMacroCommand);
-
-        var macronutrientOpt = macronutrientValuesRepository.findById(macroId);
-        if (macronutrientOpt.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        var trackingGoalCommand = new CreateTrackingGoalCommand(userId, macronutrientOpt.get());
-
-        Long goalId = trackingGoalCommandService.handle(trackingGoalCommand);
-
+        // Devolver el ID del TrackingGoal creado
         return ResponseEntity.status(201).body(goalId);
     }
 

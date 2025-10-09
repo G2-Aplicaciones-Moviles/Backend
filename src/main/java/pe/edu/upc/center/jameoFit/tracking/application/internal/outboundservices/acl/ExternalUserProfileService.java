@@ -8,49 +8,48 @@ import pe.edu.upc.center.jameoFit.tracking.domain.model.valueobjects.UserId;
 import java.util.Optional;
 
 /**
- * External Profile Service
- * This service provides an ACL (Anti-Corruption Layer) for the Tracking bounded context
- * to interact with the Profile bounded context without direct coupling.
+ * External User Profile Service (ACL)
+ *
+ * Capa Anti-Corrupción entre el bounded context Tracking y Profiles.
+ * Permite al dominio Tracking acceder a datos del perfil del usuario
+ * sin acoplarse al modelo interno de Profiles.
  */
 @Service
-public class ExternalProfileService {
+public class ExternalUserProfileService {
 
     private final UserProfilesContextFacade userProfilesFacade;
-
     private final ProfileContextFacade profileContextFacade;
 
-    public ExternalProfileService(UserProfilesContextFacade userProfilesFacade, ProfileContextFacade profileContextFacade) {
+    public ExternalUserProfileService(UserProfilesContextFacade userProfilesFacade,
+                                      ProfileContextFacade profileContextFacade) {
         this.userProfilesFacade = userProfilesFacade;
         this.profileContextFacade = profileContextFacade;
     }
 
+    /**
+     * Verifica si existe un perfil asociado a un UserId.
+     */
     public boolean existsByUserId(UserId userId) {
         return profileContextFacade.fetchAll().stream()
                 .anyMatch(profile -> profile.userProfileId() == userId.userId());
     }
 
     /**
-     * Obtiene el nombre del objetivo de un perfil de usuario
-     * @param profileId ID del perfil (equivale al userId en el contexto de tracking)
-     * @return Optional con el nombre del objetivo si existe
+     * Obtiene el nombre del objetivo (goal) de un perfil de usuario.
      */
     public Optional<String> getObjectiveNameByProfileId(Long profileId) {
         return userProfilesFacade.fetchObjectiveNameByProfileId(profileId);
     }
 
     /**
-     * Verifica si un perfil existe
-     * @param profileId ID del perfil
-     * @return true si el perfil existe, false en caso contrario
+     * Verifica si un perfil existe.
      */
     public boolean existsProfile(Long profileId) {
         return userProfilesFacade.existsProfileById(profileId);
     }
 
     /**
-     * Valida que un perfil exista antes de crear/actualizar un tracking goal
-     * @param profileId ID del perfil
-     * @throws IllegalArgumentException si el perfil no existe
+     * Lanza excepción si el perfil no existe.
      */
     public void validateProfileExists(Long profileId) {
         if (!existsProfile(profileId)) {
@@ -59,10 +58,7 @@ public class ExternalProfileService {
     }
 
     /**
-     * Obtiene el objetivo y valida que el perfil exista
-     * @param profileId ID del perfil
-     * @return Nombre del objetivo
-     * @throws IllegalArgumentException si el perfil no existe o no tiene objetivo
+     * Obtiene el nombre del objetivo validando existencia.
      */
     public String getValidatedObjectiveName(Long profileId) {
         validateProfileExists(profileId);
