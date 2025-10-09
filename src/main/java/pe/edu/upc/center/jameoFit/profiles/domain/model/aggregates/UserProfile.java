@@ -2,7 +2,9 @@ package pe.edu.upc.center.jameoFit.profiles.domain.model.aggregates;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.commands.CreateUserProfileCommand;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.Entities.Objective;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.Entities.ActivityLevel;
@@ -11,12 +13,26 @@ import pe.edu.upc.center.jameoFit.shared.domain.model.aggregates.AuditableAbstra
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * Aggregate root: UserProfile
+ * - Mantiene relaciones a ActivityLevel, Objective y Allergies (entities)
+ * - Comportamientos de dominio (calculateCalorieNeeds, add/remove allergy, actualizar)
+ * - Constructor desde CreateUserProfileCommand para respetar CQRS/DDD
+ */
 @Entity
 @Table(name = "user_profiles")
+@NoArgsConstructor
 public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
 
-    // Atributos del perfil
+    // REFERENCIA AL USER EN IAM (uno a uno)
+    @Getter
+    @NotNull
+    @Column(name = "user_id", nullable = false, unique = true)
+    private Long userId;
+
+    // ATRIBUTOS DEL PERFIL
     @Getter
     @NotNull
     @Column(name = "gender", length = 25, nullable = false)
@@ -37,7 +53,7 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
     @Column(name = "user_score", nullable = false)
     private int userScore;
 
-    // Relaciones con entidades
+    // RELACIONES (ENTITIES)
     @Getter
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "activity_level_id", nullable = false)
@@ -57,70 +73,81 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
     )
     private List<Allergy> allergies = new ArrayList<>();
 
-
-    public UserProfile() {
-    }
-
-
-    public UserProfile(String gender, double height, double weight, ActivityLevel activityLevel,
-                       Objective objective, int userScore) {
-        this.gender = gender;
+    /**
+     * Constructor completo (útil para pruebas o creación interna).
+     */
+    public UserProfile(Long userId,
+                       String gender,
+                       double height,
+                       double weight,
+                       ActivityLevel activityLevel,
+                       Objective objective,
+                       int userScore) {
+        this.userId = Objects.requireNonNull(userId, "userId required");
+        this.gender = Objects.requireNonNull(gender, "gender required");
         this.height = height;
         this.weight = weight;
-        this.activityLevel = activityLevel;
-        this.objective = objective;
+        this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
+        this.objective = Objects.requireNonNull(objective, "objective required");
         this.userScore = userScore;
         this.allergies = new ArrayList<>();
     }
 
-
+    /**
+     * Constructor desde CreateUserProfileCommand (puerta de entrada desde la capa de aplicación).
+     * Aquí se cumple la responsabilidad: el aggregate sabe cómo inicializarse desde el comando.
+     */
     public UserProfile(CreateUserProfileCommand command,
                        ActivityLevel activityLevel,
                        Objective objective) {
+        Objects.requireNonNull(command, "command required");
+        this.userId = Objects.requireNonNull(command.userId(), "userId required");
         this.gender = command.gender();
         this.height = command.height();
         this.weight = command.weight();
         this.userScore = command.userScore();
-        this.activityLevel = activityLevel;
-        this.objective = objective;
+        this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
+        this.objective = Objects.requireNonNull(objective, "objective required");
         this.allergies = new ArrayList<>();
     }
 
-
-    public UserProfile updateProfile(String gender, double height, double weight, ActivityLevel activityLevel,
-                                     Objective objective, int userScore) {
-        this.gender = gender;
+    /**
+     * Actualiza campos importantes del perfil. Devuelve this para permitir encadenamiento si se desea.
+     */
+    public UserProfile updateProfile(String gender, double height, double weight,
+                                     ActivityLevel activityLevel, Objective objective, int userScore) {
+        this.gender = Objects.requireNonNull(gender, "gender required");
         this.height = height;
         this.weight = weight;
-        this.activityLevel = activityLevel;
-        this.objective = objective;
+        this.activityLevel = Objects.requireNonNull(activityLevel, "activityLevel required");
+        this.objective = Objects.requireNonNull(objective, "objective required");
         this.userScore = userScore;
         return this;
     }
 
-    // Métodos para manipular alergias
+    // Manipulación de alergias (comportamiento del aggregate)
     public void addAllergy(Allergy allergy) {
-        this.allergies.add(allergy);
+        if (allergy == null) return;
+        if (!this.allergies.contains(allergy)) this.allergies.add(allergy);
     }
 
     public void removeAllergy(Allergy allergy) {
+        if (allergy == null) return;
         this.allergies.remove(allergy);
     }
 
-    // Métodos de comportamiento orientados a dominio
+    // Comportamiento de dominio: cálculo de calorías según activityLevel
     public double calculateCalorieNeeds(int age) {
+        // delega la fórmula a ActivityLevel (entity), manteniendo SRP
         return this.activityLevel.calculateCalories(this.weight, this.height, age);
     }
 
-
-
-    // Métodos para actualizar relaciones individuales
+    // Permite reemplazar el activity level o el objetivo de forma explícita (comportamiento del aggregate)
     public void updateActivityLevel(ActivityLevel newLevel) {
-        this.activityLevel = newLevel;
+        this.activityLevel = Objects.requireNonNull(newLevel, "newLevel required");
     }
 
     public void updateObjective(Objective newObjective) {
-        this.objective = newObjective;
+        this.objective = Objects.requireNonNull(newObjective, "newObjective required");
     }
-
 }

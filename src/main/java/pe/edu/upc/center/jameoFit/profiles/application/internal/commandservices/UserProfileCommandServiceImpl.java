@@ -1,6 +1,8 @@
 package pe.edu.upc.center.jameoFit.profiles.application.internal.commandservices;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pe.edu.upc.center.jameoFit.profiles.application.internal.outboundservices.acl.ExternalUserService;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.aggregates.UserProfile;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.commands.CreateUserProfileCommand;
 import pe.edu.upc.center.jameoFit.profiles.domain.model.commands.DeleteUserProfileCommand;
@@ -17,19 +19,32 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     private final ActivityLevelRepository activityLevelRepository;
     private final ObjectiveRepository objectiveRepository;
     private final AllergyRepository allergyRepository;
+    private final ExternalUserService externalUserService; // ✅ nuevo
 
     public UserProfileCommandServiceImpl(UserProfileRepository userProfileRepository,
                                          ActivityLevelRepository activityLevelRepository,
                                          ObjectiveRepository objectiveRepository,
-                                         AllergyRepository allergyRepository) {
+                                         AllergyRepository allergyRepository,
+                                         ExternalUserService externalUserService) { // ✅ inyección
         this.userProfileRepository = userProfileRepository;
         this.activityLevelRepository = activityLevelRepository;
         this.objectiveRepository = objectiveRepository;
         this.allergyRepository = allergyRepository;
+        this.externalUserService = externalUserService;
     }
 
     @Override
+    @Transactional
     public int handle(CreateUserProfileCommand command) {
+        if (command.userId() == null) throw new IllegalArgumentException("userId is required");
+
+        // Validación contra IAM vía ACL
+        if (!externalUserService.userExists(command.userId()))
+            throw new IllegalArgumentException("User with ID " + command.userId() + " does not exist in IAM");
+
+        if (userProfileRepository.existsByUserId(command.userId()))
+            throw new IllegalArgumentException("UserProfile already exists for userId " + command.userId());
+
         var activityLevel = activityLevelRepository.findById(command.activityLevelId())
                 .orElseThrow(() -> new IllegalArgumentException("Activity level not found"));
 
@@ -38,7 +53,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
         var userProfile = new UserProfile(command, activityLevel, objective);
 
-        if (command.allergyIds() != null) {
+        if (command.allergyIds() != null && !command.allergyIds().isEmpty()) {
             var allergies = allergyRepository.findAllById(command.allergyIds());
             allergies.forEach(userProfile::addAllergy);
         }
@@ -47,10 +62,11 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         return savedProfile.getId();
     }
 
+
     @Override
     public Optional<UserProfile> handle(UpdateUserProfileCommand command) {
         var profile = userProfileRepository.findById(command.userProfileId())
-                .orElseThrow(() -> new IllegalArgumentException("Profile profile not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Profile not found"));
 
         var activityLevel = activityLevelRepository.findById(command.activityLevelId())
                 .orElseThrow(() -> new IllegalArgumentException("Activity level not found"));
@@ -67,9 +83,8 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
     @Override
     public void handle(DeleteUserProfileCommand command) {
-        if (!userProfileRepository.existsById(command.userProfileId())) {
-            throw new IllegalArgumentException("Profile profile not found");
-        }
+        if (!userProfileRepository.existsById(command.userProfileId()))
+            throw new IllegalArgumentException("Profile not found");
         userProfileRepository.deleteById(command.userProfileId());
     }
 }
