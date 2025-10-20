@@ -1,4 +1,3 @@
-// src/main/java/pe/edu/upc/center/platform/profiles/interfaces/rest/transform/UserProfileResourceFromEntityAssembler.java
 package pe.edu.upc.center.jameoFit.profiles.interfaces.rest.transform;
 
 import pe.edu.upc.center.jameoFit.profiles.domain.model.aggregates.UserProfile;
@@ -11,22 +10,21 @@ public class UserProfileResourceFromEntityAssembler {
 
     public static UserProfileResource toResourceFromEntity(UserProfile entity) {
         return new UserProfileResource(
-                entity.getId(),
+                entity.getId(), // ✅ era String, ahora int (coincide con record)
                 entity.getGender(),
                 entity.getHeight(),
                 entity.getWeight(),
                 entity.getUserScore(),
-                entity.getActivityLevel().getId(),
+                entity.getActivityLevel().getId(), // ✅ getId() ya devuelve Long
                 entity.getActivityLevel().getName(),
-                (int) entity.getObjective().getId(),
+                entity.getObjective().getId(), // ✅ getId() ya devuelve int
                 entity.getObjective().getObjectiveName(),
                 entity.getAllergies().stream()
                         .map(a -> a.getName())
-                        .toList()
+                        .collect(Collectors.toList())
         );
     }
 
-    // Nuevo método para convertir una lista de entidades
     public static List<UserProfileResource> toResources(List<UserProfile> entities) {
         return entities.stream()
                 .map(UserProfileResourceFromEntityAssembler::toResourceFromEntity)

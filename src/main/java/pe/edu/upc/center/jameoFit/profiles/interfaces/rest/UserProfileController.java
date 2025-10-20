@@ -3,16 +3,19 @@ package pe.edu.upc.center.jameoFit.profiles.interfaces.rest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pe.edu.upc.center.jameoFit.profiles.interfaces.acl.UserProfilesContextFacade;
 import pe.edu.upc.center.jameoFit.profiles.interfaces.rest.resources.CreateUserProfileResource;
 import pe.edu.upc.center.jameoFit.profiles.interfaces.rest.resources.UserProfileResource;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/user-profiles")
-@Tag(name = "UserProfiles", description = "se registra el perfil del usuario")
+@Tag(name = "UserProfiles", description = "Gestión del perfil del usuario (onboarding)")
 public class UserProfileController {
+
     private final UserProfilesContextFacade facade;
 
     public UserProfileController(UserProfilesContextFacade facade) {
@@ -32,19 +35,22 @@ public class UserProfileController {
     }
 
     @PostMapping
-    public ResponseEntity<Integer> create(@RequestBody CreateUserProfileResource r) {
+    public ResponseEntity<UserProfileResource> create(@RequestBody CreateUserProfileResource r) {
         var newId = facade.create(r);
-        return ResponseEntity.ok(newId);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(newId).toUri();
+
+        var resource = facade.fetchById((long) newId).orElseThrow();
+        return ResponseEntity.created(location).body(resource);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Long> update(@PathVariable Long id,
-                                       @RequestBody CreateUserProfileResource r) {
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody CreateUserProfileResource r) {
         if (facade.fetchById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         facade.update(id, r);
-        return ResponseEntity.ok(id);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
