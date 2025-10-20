@@ -1,15 +1,23 @@
 -- ==============================================
--- LIMPIEZA DE DATOS (TRUNCATE o DELETE)
+-- CLEANUP (orden según dependencias)
 -- ==============================================
+-- Hijas
+DELETE FROM recipe_ingredients;
 DELETE FROM allergy_ingredients;
-DELETE FROM allergies;
-DELETE FROM ingredients;
-DELETE FROM objectives;
-DELETE FROM activity_levels;
 DELETE FROM recommendations;
+DELETE FROM meal_plans;
+
+-- Intermedias / que dependen de catálogos
+DELETE FROM recipes;
+
+-- Catálogos
+DELETE FROM ingredients;
+DELETE FROM allergies;
 DELETE FROM recommendation_templates;
 DELETE FROM categories;
 DELETE FROM recipe_types;
+DELETE FROM objectives;
+DELETE FROM activity_levels;
 
 -- ==============================================
 -- SEED DE CATEGORIES
@@ -133,5 +141,84 @@ INSERT INTO meal_plans (
 -- 10
 (true, 1500, 120, 40, 90, 10, NOW(), NOW(), 'Ayuno intermitente', 'Plan 16/8', 'Plan adaptado a horarios de ayuno intermitente.');
 
+
+-- ==============================================
+-- SEED DE RECIPES
+-- ==============================================
+INSERT INTO recipes (user_id, name, description, preparation_time, difficulty, category_id, recipe_type_id, created_at, updated_at) VALUES
+-- Desayunos
+(1, 'Avena con Frutas', 'Avena cocida con plátano, fresas y miel. Rica en fibra y energía para empezar el día.', 10, 'Fácil', 1, 4, NOW(), NOW()),
+(1, 'Omelette de Vegetales', 'Tortilla de huevos con pimientos, cebolla y tomate. Alto en proteínas.', 15, 'Fácil', 1, 3, NOW(), NOW()),
+(1, 'Smoothie Bowl Verde', 'Bowl de smoothie de espinaca, plátano y proteína vegetal, decorado con granola.', 8, 'Fácil', 1, 2, NOW(), NOW()),
+(1, 'Pancakes Proteicos', 'Pancakes hechos con harina de avena, claras de huevo y plátano.', 20, 'Media', 1, 3, NOW(), NOW()),
+(1, 'Tostadas Integrales con Aguacate', 'Pan integral tostado con aguacate machacado, tomate y semillas.', 10, 'Fácil', 1, 4, NOW(), NOW()),
+
+-- Almuerzos
+(1, 'Pollo a la Plancha con Quinoa', 'Pechuga de pollo asada con quinoa y ensalada de vegetales frescos.', 30, 'Media', 2, 3, NOW(), NOW()),
+(1, 'Ensalada César con Pollo', 'Lechuga romana, pollo grillado, crutones y aderezo césar casero.', 20, 'Fácil', 2, 3, NOW(), NOW()),
+(1, 'Pasta Integral con Vegetales', 'Pasta de trigo integral con calabacín, tomate cherry y albahaca.', 25, 'Media', 2, 4, NOW(), NOW()),
+(1, 'Bowl Vegetariano', 'Arroz integral con garbanzos, aguacate, zanahoria rallada y hummus.', 25, 'Media', 2, 4, NOW(), NOW()),
+(1, 'Salmón al Horno con Brócoli', 'Filete de salmón horneado con brócoli al vapor y limón.', 35, 'Media', 2, 3, NOW(), NOW()),
+
+-- Cenas
+(1, 'Sopa de Lentejas', 'Sopa nutritiva de lentejas con zanahoria, apio y especias.', 40, 'Fácil', 3, 4, NOW(), NOW()),
+(1, 'Tacos de Pollo', 'Tortillas de maíz con pollo desmenuzado, pico de gallo y aguacate.', 25, 'Media', 3, 3, NOW(), NOW()),
+(1, 'Ensalada Caprese', 'Tomate, mozzarella fresca, albahaca y aceite de oliva.', 10, 'Fácil', 3, 4, NOW(), NOW()),
+(1, 'Wrap de Atún', 'Tortilla integral rellena de atún, lechuga, pepino y yogurt griego.', 15, 'Fácil', 3, 3, NOW(), NOW()),
+(1, 'Tortilla Española Light', 'Tortilla de papas y cebolla con menos aceite, versión saludable.', 30, 'Media', 3, 3, NOW(), NOW()),
+
+-- Snacks
+(1, 'Hummus con Vegetales', 'Hummus casero de garbanzos con palitos de zanahoria y pepino.', 10, 'Fácil', 4, 2, NOW(), NOW()),
+(1, 'Yogurt Griego con Nueces', 'Yogurt griego natural con nueces picadas y miel.', 5, 'Fácil', 4, 4, NOW(), NOW()),
+(1, 'Batido de Proteína', 'Batido de proteína de suero con leche de almendras y plátano.', 5, 'Fácil', 4, 3, NOW(), NOW()),
+(1, 'Frutas con Mantequilla de Maní', 'Manzana o plátano con mantequilla de maní natural.', 5, 'Fácil', 4, 4, NOW(), NOW()),
+(1, 'Energy Balls', 'Bolitas de dátiles, avena, cacao y almendras. Sin azúcar añadida.', 15, 'Fácil', 4, 2, NOW(), NOW()),
+
+-- Postres
+(1, 'Brownie Saludable', 'Brownie hecho con harina de almendra, cacao puro y endulzante natural.', 30, 'Media', 5, 1, NOW(), NOW()),
+(1, 'Helado de Plátano', 'Helado cremoso hecho solo con plátanos congelados y cacao.', 5, 'Fácil', 5, 2, NOW(), NOW()),
+(1, 'Pudín de Chía', 'Pudín de semillas de chía con leche de coco y frutas frescas.', 10, 'Fácil', 5, 2, NOW(), NOW()),
+(1, 'Muffins de Arándanos', 'Muffins integrales con arándanos frescos y avena.', 25, 'Media', 5, 4, NOW(), NOW()),
+(1, 'Galletas de Avena', 'Galletas crujientes de avena con pasas y canela, sin azúcar refinada.', 20, 'Fácil', 5, 4, NOW(), NOW());
+
+-- ==============================================
+-- SEED DE RECIPE_INGREDIENTS (Relación muchos a muchos)
+-- ==============================================
+-- Ejemplo: Yogurt Griego con Nueces (recipe_id = 17) tiene nueces
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (17, 1),  -- Yogurt con nueces
+                                                              (17, 5);  -- Yogurt con leche
+
+-- Ejemplo: Hummus con Vegetales (recipe_id = 16) tiene tomate y cebolla
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (16, 2),  -- tomate
+                                                              (16, 3);  -- cebolla
+
+-- Ejemplo: Ensalada Caprese (recipe_id = 13) tiene tomate y queso
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (13, 2),  -- tomate
+                                                              (13, 6);  -- queso
+
+-- Ejemplo: Energy Balls (recipe_id = 20) tiene nueces y pecanas
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (20, 1),  -- nueces
+                                                              (20, 4);  -- pecanas
+
+-- Ejemplo: Brownie Saludable (recipe_id = 21) tiene nueces
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (21, 1),  -- nueces
+                                                              (21, 5);  -- leche
+
+-- Puedes agregar más relaciones según necesites
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
+                                                              (10, 2),  -- Salmón con tomate
+                                                              (11, 3),  -- Sopa de lentejas con cebolla
+                                                              (12, 2),  -- Tacos con tomate
+                                                              (12, 3),  -- Tacos con cebolla
+                                                              (14, 2),  -- Wrap con tomate
+                                                              (15, 3);  -- Tortilla española con cebolla
+
+-- Resetear la secuencia del ID si es necesario
+SELECT setval('recipes_id_seq', (SELECT MAX(id) FROM recipes) + 1);
 SELECT setval('recommendations_id_seq', (SELECT MAX(id) FROM recommendations) + 1);
 SELECT setval('recommendation_templates_id_seq', (SELECT MAX(id) FROM recommendation_templates) + 1);

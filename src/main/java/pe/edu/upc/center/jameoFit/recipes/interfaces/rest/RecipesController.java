@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.center.jameoFit.recipes.aplication.internal.commandservices.RecipeCommandServiceImpl;
 import pe.edu.upc.center.jameoFit.recipes.aplication.internal.queryservices.RecipeQueryServiceImpl;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.commands.DeleteRecipeCommand;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesByCategoryIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.AddIngredientToRecipeResource;
@@ -65,6 +66,14 @@ public class RecipesController {
 
         var recipeResource = RecipeResourceFromEntityAssembler.toResourceFromEntity(optionalRecipe.get());
         return ResponseEntity.ok(recipeResource);
+    }
+
+    @GetMapping("category/{categoryId}")
+    public ResponseEntity<List<RecipeResource>> getAllRecipesByCategory(@PathVariable Long categoryId) {
+        var getAllRecipesByCategoryQuery = new GetAllRecipesByCategoryIdQuery(categoryId);
+        var recipes = this.recipeQueryService.handle(getAllRecipesByCategoryQuery);
+        var recipeResources = RecipeResourceFromEntityAssembler.toResources(recipes);
+        return ResponseEntity.ok(recipeResources);
     }
 
     @PutMapping("/{recipeId}")
