@@ -2,6 +2,7 @@ package pe.edu.upc.center.jameoFit.recipes.aplication.internal.queryservices;
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.aggregates.Recipe;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesByCategoryIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeQueryService;
@@ -22,6 +23,11 @@ public class RecipeQueryServiceImpl implements RecipeQueryService {
     @Override
     public List<Recipe> handle(GetAllRecipesQuery query) {
         return recipeRepository.findAll();
+    }
+
+    @Override
+    public List<Recipe> handle(GetAllRecipesByCategoryIdQuery query) {
+        return recipeRepository.findAllByCategoryId(query.categoryId());
     }
 
     @Override

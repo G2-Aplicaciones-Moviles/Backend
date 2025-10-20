@@ -1,6 +1,7 @@
 package pe.edu.upc.center.jameoFit.recipes.domain.services;
 
 import pe.edu.upc.center.jameoFit.recipes.domain.model.aggregates.Recipe;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesByCategoryIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
 
@@ -9,5 +10,6 @@ import java.util.Optional;
 
 public interface RecipeQueryService {
     List<Recipe> handle(GetAllRecipesQuery query);
+    List<Recipe> handle(GetAllRecipesByCategoryIdQuery query);
     Optional<Recipe> handle(GetRecipesByIdQuery query);
 }
