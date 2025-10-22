@@ -4,14 +4,17 @@ import pe.edu.upc.center.jameoFit.nutritionists.domain.model.aggregates.Nutritio
 import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.resources.NutritionistResource;
 
 public class NutritionistResourceFromEntityAssembler {
-    public static NutritionistResource toResourceFromEntity(Nutritionist e) {
+    public static NutritionistResource toResourceFromEntity(Nutritionist entity) {
         return new NutritionistResource(
-                e.getUserId(),
-                e.getFullName(),
-                e.getLicenseNumber(),
-                e.getSpecialty(),
-                e.getYearsExperience(),
-                e.isAcceptingNewPatients()
+                entity.getId(),
+                entity.getUserId(),
+                entity.getFullName(),
+                entity.getLicenseNumber(),
+                entity.getSpecialty(),
+                entity.getYearsExperience(),
+                entity.getAcceptingNewPatients(),
+                entity.getBio(),
+                entity.getProfilePictureUrl()
         );
     }
 }

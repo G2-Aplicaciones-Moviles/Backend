@@ -7,6 +7,6 @@ import pe.edu.upc.center.jameoFit.nutritionists.domain.model.aggregates.Nutritio
 import java.util.Optional;
 
 @Repository
-public interface NutritionistRepository extends JpaRepository<Nutritionist, Long> {
+public interface NutritionistRepository extends JpaRepository<Nutritionist, Integer> {
     Optional<Nutritionist> findByUserId(Long userId);
 }

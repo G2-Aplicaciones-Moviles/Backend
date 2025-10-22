@@ -2,54 +2,51 @@ package pe.edu.upc.center.jameoFit.nutritionists.application.internal.commandser
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import pe.edu.upc.center.jameoFit.nutritionists.application.internal.outboundservices.acl.IamExternalService;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.aggregates.Nutritionist;
-import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.RegisterOrUpdateProfileCommand;
-import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.UpdateAvailabilityCommand;
+import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.CreateNutritionistCommand;
+import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.UpdateNutritionistCommand;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.services.NutritionistCommandService;
 import pe.edu.upc.center.jameoFit.nutritionists.infrastructure.persistence.jpa.repositories.NutritionistRepository;
+
+import java.util.Optional;
 
 @Service
 @Transactional
 public class NutritionistCommandServiceImpl implements NutritionistCommandService {
 
     private final NutritionistRepository repository;
-    private final IamExternalService iamService;
 
-    public NutritionistCommandServiceImpl(NutritionistRepository repository,
-                                          IamExternalService iamService) {
+    public NutritionistCommandServiceImpl(NutritionistRepository repository) {
         this.repository = repository;
-        this.iamService = iamService;
     }
 
     @Override
-    public Nutritionist handle(RegisterOrUpdateProfileCommand command) {
-        if (!iamService.userExists(command.userId()))
-            throw new IllegalArgumentException("User not found in IAM");
-
-        var nutritionist = repository.findByUserId(command.userId())
-                .orElseGet(() -> new Nutritionist(
-                        command.userId(),
-                        command.fullName(),
-                        command.licenseNumber(),
-                        command.specialty(),
-                        command.yearsExperience()
-                ));
-
-        nutritionist.updateProfile(command.fullName(),
+    public Nutritionist handle(CreateNutritionistCommand command) {
+        var nutritionist = new Nutritionist(
+                command.userId(),
+                command.fullName(),
                 command.licenseNumber(),
                 command.specialty(),
-                command.yearsExperience());
-
+                command.yearsExperience(),
+                command.acceptingNewPatients(),
+                command.bio(),
+                command.profilePictureUrl()
+        );
         return repository.save(nutritionist);
     }
 
     @Override
-    public Nutritionist handle(UpdateAvailabilityCommand command) {
-        var nutritionist = repository.findByUserId(command.userId())
-                .orElseThrow(() -> new IllegalStateException("Nutritionist not found for userId=" + command.userId()));
-
-        nutritionist.updateAvailability(command.acceptingNewPatients());
-        return repository.save(nutritionist);
+    public Optional<Nutritionist> handle(UpdateNutritionistCommand command) {
+        return repository.findById(command.nutritionistId().intValue())
+                .map(existing -> {
+                    existing.updateInfo(
+                            command.fullName(),
+                            command.bio(),
+                            command.profilePictureUrl(),
+                            command.acceptingNewPatients(),
+                            command.yearsExperience()
+                    );
+                    return repository.save(existing);
+                });
     }
 }

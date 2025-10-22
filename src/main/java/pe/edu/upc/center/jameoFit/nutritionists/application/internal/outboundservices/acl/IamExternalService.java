@@ -7,7 +7,6 @@ import java.util.List;
 
 @Service
 public class IamExternalService {
-
     private final IamContextFacade iamContextFacade;
 
     public IamExternalService(IamContextFacade iamContextFacade) {

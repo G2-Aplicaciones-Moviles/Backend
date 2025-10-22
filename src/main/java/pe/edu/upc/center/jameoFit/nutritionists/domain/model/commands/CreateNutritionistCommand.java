@@ -1,9 +1,8 @@
-package pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.resources;
+package pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands;
 
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.valueobjects.Specialty;
 
-public record NutritionistResource(
-        Integer id,
+public record CreateNutritionistCommand(
         Long userId,
         String fullName,
         String licenseNumber,
