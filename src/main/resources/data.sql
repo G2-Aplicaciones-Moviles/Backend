@@ -9,6 +9,8 @@ DELETE FROM meal_plans;
 DELETE FROM nutritionists;
 DELETE FROM user_roles;
 DELETE FROM users;
+-- Join table entre user_profiles y allergies: debe borrarse antes de allergies
+DELETE FROM user_profile_allergies;
 
 -- Intermedias / que dependen de catálogos
 DELETE FROM recipes;
