@@ -7,6 +7,7 @@ public record UserProfileResource(
         double height,
         double weight,
         int userScore,
+        String birthDate,       // ✅ debe ser String, no Long
         Long activityLevelId,
         String activityLevelName,
         int objectiveId,

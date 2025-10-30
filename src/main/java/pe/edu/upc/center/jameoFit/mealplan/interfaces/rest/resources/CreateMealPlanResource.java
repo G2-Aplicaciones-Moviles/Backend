@@ -12,7 +12,6 @@ public record CreateMealPlanResource(
         Integer profileId,
         String category,
         Boolean isCurrent,
-        List<CreateMealPlanEntryResource> entries,
         List<String> tags
 ) {
 }

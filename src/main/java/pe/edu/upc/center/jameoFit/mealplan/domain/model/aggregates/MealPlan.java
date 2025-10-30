@@ -35,8 +35,11 @@ public class MealPlan extends AuditableAbstractAggregateRoot<MealPlan> {
     private MealPlanMacros macros;
 
     @Embedded
-    @AttributeOverrides( {
-            @AttributeOverride(name = "profileId", column = @Column(name = "profile_id", nullable = false))
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "userProfileId",
+                    column = @Column(name = "profile_id", nullable = false) // <- usa profile_id
+            )
     })
     private UserProfileId profileId;
 
@@ -49,7 +52,7 @@ public class MealPlan extends AuditableAbstractAggregateRoot<MealPlan> {
     @Column(name = "category", length = 100, nullable = false)
     private String category;
 
-    @Column(name = "isCurrent", nullable = false)
+    @Column(name = "is_current", nullable = false)
     private Boolean isCurrent;
 
 
@@ -96,6 +99,10 @@ public class MealPlan extends AuditableAbstractAggregateRoot<MealPlan> {
         this.tags.getMealPlanTags().add(tag);
     }
 
+    public void addNutrition(double kc, double c, double p, double f) {
+        if (this.getMacros() == null) this.setMacros(new MealPlanMacros(0,0,0,0));
+        this.setMacros(this.getMacros().plus(kc, c, p, f));
+    }
 //    public void addMeal(DayNumber day, MealPlanType type, RecipeReference recipe);
 //    public void removeMeal(DayNumber day, MealPlanType type);
 //

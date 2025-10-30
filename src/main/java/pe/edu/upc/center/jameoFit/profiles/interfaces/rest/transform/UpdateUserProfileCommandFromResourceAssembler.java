@@ -16,7 +16,9 @@ public class UpdateUserProfileCommandFromResourceAssembler {
                 resource.weight(),
                 resource.userScore(),
                 resource.activityLevelId(),
-                Long.valueOf(resource.objectiveId())
+                resource.objectiveId(),
+                resource.birthDate() // ✅ agregado
         );
+
     }
 }

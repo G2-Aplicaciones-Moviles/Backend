@@ -2,6 +2,7 @@ package pe.edu.upc.center.jameoFit.mealplan.application.internal.outboundservice
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.acl.RecipeContextFacade;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeNutritionResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
 
 import java.util.List;
@@ -21,5 +22,8 @@ public class ExternalMealPlanRecipeService {
     }
     public List<RecipeResource> fetchAllRecipes() {
         return recipeContextFacade.fetchAll();
+    }
+    public RecipeNutritionResource fetchNutrition(int recipeId) {
+        return recipeContextFacade.fetchNutritionByRecipeId(recipeId);
     }
 }

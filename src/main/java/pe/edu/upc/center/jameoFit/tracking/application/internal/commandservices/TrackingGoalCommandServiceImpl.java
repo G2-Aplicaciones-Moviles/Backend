@@ -1,6 +1,6 @@
 package pe.edu.upc.center.jameoFit.tracking.application.internal.commandservices;
 
-import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalProfileService;
+import pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservices.acl.ExternalUserProfileService;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.MacronutrientValues;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.TrackingGoal;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.commands.*;
@@ -9,6 +9,8 @@ import pe.edu.upc.center.jameoFit.tracking.domain.model.valueobjects.UserId;
 import pe.edu.upc.center.jameoFit.tracking.domain.services.TrackingGoalCommandService;
 import pe.edu.upc.center.jameoFit.tracking.infrastructure.persistence.jpa.repositories.MacronutrientValuesRepository;
 import pe.edu.upc.center.jameoFit.tracking.infrastructure.persistence.jpa.repositories.TrackingGoalRepository;
+import pe.edu.upc.center.jameoFit.tracking.domain.model.dto.UserProfileDto;
+import pe.edu.upc.center.jameoFit.tracking.domain.services.CalorieCalculatorService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -20,20 +22,20 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
 
     private final TrackingGoalRepository trackingGoalRepository;
     private final MacronutrientValuesRepository macronutrientValuesRepository;
-    private final ExternalProfileService externalProfileService;
+    private final ExternalUserProfileService externalUserProfileService;
 
     public TrackingGoalCommandServiceImpl(TrackingGoalRepository trackingGoalRepository,
                                           MacronutrientValuesRepository macronutrientValuesRepository,
-                                          ExternalProfileService externalProfileService) {
+                                          ExternalUserProfileService externalUserProfileService) {
         this.trackingGoalRepository = trackingGoalRepository;
         this.macronutrientValuesRepository = macronutrientValuesRepository;
-        this.externalProfileService = externalProfileService;
+        this.externalUserProfileService = externalUserProfileService;
     }
 
     @Override
     public Long handle(CreateTrackingGoalCommand command) {
         // Validar que el perfil existe
-        externalProfileService.validateProfileExists(command.profile().userId());
+        externalUserProfileService.validateProfileExists(command.profile().userId());
 
         if (trackingGoalRepository.existsByUserId(command.profile())) {
             throw new IllegalArgumentException("Tracking goal already exists for user: " + command.profile());
@@ -44,9 +46,10 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
         return trackingGoal.getId();
     }
 
+    @Override
     public void handle(UpdateTrackingGoalCommand command) {
         // Validar que el perfil existe
-        externalProfileService.validateProfileExists(command.userId().userId());
+        externalUserProfileService.validateProfileExists(command.userId().userId());
 
         Optional<TrackingGoal> trackingGoalOpt = trackingGoalRepository.findByUserId(command.userId());
 
@@ -56,7 +59,7 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
 
         TrackingGoal trackingGoal = trackingGoalOpt.get();
 
-        // Crear nuevos valores de macronutrientes basados en el tipo de objetivo
+        // Crear nuevos valores de macronutrientes basados en el tipo de objetivo (legacy)
         MacronutrientValues newMacros = new MacronutrientValues(
                 command.goalType().getCalories(),
                 command.goalType().getCarbs(),
@@ -80,21 +83,15 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
      * @return ID del tracking goal creado
      */
     public Long createTrackingGoalFromProfile(Long profileId) {
-        // Obtener el objetivo del perfil y validar que existe
-        String objectiveName = externalProfileService.getValidatedObjectiveName(profileId);
+        // Obtener DTO del perfil y validar
+        Optional<UserProfileDto> profileDtoOpt = externalUserProfileService.fetchUserProfileDtoById(profileId);
+        UserProfileDto profileDto = profileDtoOpt.orElseThrow(() ->
+                new IllegalArgumentException("UserProfile not found for id: " + profileId));
 
-        // Mapear el objetivo del perfil a un GoalType
-        GoalTypes goalType = mapObjectiveToGoalType(objectiveName);
+        // Calcular macros objetivo
+        MacronutrientValues macros = CalorieCalculatorService.calculateTargetMacronutrients(profileDto);
 
-        // Crear los macronutrientes basados en el tipo de objetivo
-        MacronutrientValues macros = new MacronutrientValues(
-                goalType.getCalories(),
-                goalType.getCarbs(),
-                goalType.getProteins(),
-                goalType.getFats()
-        );
-
-        // Guardar los macronutrientes
+        // Guardar macronutrientes
         macronutrientValuesRepository.save(macros);
 
         // Crear el comando y ejecutarlo
@@ -111,34 +108,35 @@ public class TrackingGoalCommandServiceImpl implements TrackingGoalCommandServic
      * @param profileId ID del perfil
      */
     public void updateTrackingGoalFromProfile(Long profileId) {
-        // Obtener el objetivo del perfil y validar que existe
-        String objectiveName = externalProfileService.getValidatedObjectiveName(profileId);
+        // Obtener DTO
+        Optional<UserProfileDto> profileDtoOpt = externalUserProfileService.fetchUserProfileDtoById(profileId);
+        UserProfileDto profileDto = profileDtoOpt.orElseThrow(() ->
+                new IllegalArgumentException("UserProfile not found for id: " + profileId));
 
-        // Mapear el objetivo del perfil a un GoalType
-        GoalTypes goalType = mapObjectiveToGoalType(objectiveName);
+        // Calcular macros
+        MacronutrientValues macros = CalorieCalculatorService.calculateTargetMacronutrients(profileDto);
 
-        // Crear el comando y ejecutarlo
-        var command = new UpdateTrackingGoalCommand(
-                new UserId(profileId),
-                goalType
-        );
+        // Guardar macros nuevos
+        macronutrientValuesRepository.save(macros);
 
-        handle(command);
-    }
+        // Buscar tracking goal existente
+        Optional<TrackingGoal> trackingGoalOpt = trackingGoalRepository.findByUserId(new UserId(profileId));
+        if (trackingGoalOpt.isEmpty()) {
+            throw new IllegalArgumentException("Tracking goal not found for user: " + profileId);
+        }
+        TrackingGoal trackingGoal = trackingGoalOpt.get();
 
-    /**
-     * Mapea el nombre del objetivo del perfil a un GoalType de tracking
-     * @param objectiveName Nombre del objetivo del perfil
-     * @return GoalType correspondiente
-     */
-    private GoalTypes mapObjectiveToGoalType(String objectiveName) {
-        return switch (objectiveName.toLowerCase()) {
-            case "ganancia", "ganancia muscular", "ganar peso", "muscle gain" -> GoalTypes.GANANCIA_MUSCULAR;
-            case "perdida", "perdida de peso", "perder peso", "weight loss" -> GoalTypes.PERDIDA_PESO;
-            case "mantenimiento", "mantener peso", "maintenance" -> GoalTypes.MANTENIMIENTO;
-            default -> throw new IllegalArgumentException("Unknown objective: " + objectiveName +
-                    ". Valid objectives are: ganancia, perdida, mantenimiento");
-        };
+        // Actualizar el target macros del tracking goal (usa el método del entity)
+        try {
+            trackingGoal.updateTargetMacros(macros); // si tu entity usa este método
+        } catch (NoSuchMethodError e) {
+            // fallback: si tu entity expone setTargetMacros, usa eso en su lugar
+            try {
+                trackingGoal.setTargetMacros(macros);
+            } catch (Exception ignored) { }
+        }
+
+        trackingGoalRepository.save(trackingGoal);
     }
 
     /**

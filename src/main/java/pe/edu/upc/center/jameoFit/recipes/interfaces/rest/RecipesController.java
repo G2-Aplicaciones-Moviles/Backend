@@ -10,13 +10,12 @@ import pe.edu.upc.center.jameoFit.recipes.domain.model.commands.DeleteRecipeComm
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesByCategoryIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
+import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeNutritionService;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.AddIngredientToRecipeResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.CreateRecipeResource;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeNutritionResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
-import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.AddIngredientToRecipeCommandFromResourceAssembler;
-import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.CreateRecipeCommandFromResourceAssembler;
-import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.RecipeResourceFromEntityAssembler;
-import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.UpdateRecipeCommandFromResourceAssembler;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.*;
 
 import java.util.List;
 
@@ -27,10 +26,13 @@ public class RecipesController {
 
     private final RecipeCommandServiceImpl recipeCommandService;
     private final RecipeQueryServiceImpl recipeQueryService;
+    private final RecipeNutritionService recipeNutritionService;
 
-    public RecipesController(RecipeCommandServiceImpl recipeCommandService, RecipeQueryServiceImpl recipeQueryService) {
+    public RecipesController(RecipeCommandServiceImpl recipeCommandService, RecipeQueryServiceImpl recipeQueryService,
+                             RecipeNutritionService recipeNutritionService) {
         this.recipeCommandService = recipeCommandService;
         this.recipeQueryService = recipeQueryService;
+        this.recipeNutritionService = recipeNutritionService;
     }
 
     @PostMapping
@@ -109,4 +111,14 @@ public class RecipesController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/{recipeId}/nutrition")
+    public ResponseEntity<RecipeNutritionResource> getRecipeNutrition(@PathVariable int recipeId) {
+        var opt = recipeQueryService.handle(new GetRecipesByIdQuery(recipeId));
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        var vo = recipeNutritionService.compute(opt.get());
+        return ResponseEntity.ok(RecipeNutritionResourceAssembler.toResource(vo));
+    }
+
+
 }

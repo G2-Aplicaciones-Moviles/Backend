@@ -75,7 +75,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
                 .orElseThrow(() -> new IllegalArgumentException("Objective not found"));
 
         profile.updateProfile(command.gender(), command.height(), command.weight(),
-                activityLevel, objective, command.userScore());
+                activityLevel, objective, command.userScore(), command.birthDate());
 
         var updatedProfile = userProfileRepository.save(profile);
         return Optional.of(updatedProfile);

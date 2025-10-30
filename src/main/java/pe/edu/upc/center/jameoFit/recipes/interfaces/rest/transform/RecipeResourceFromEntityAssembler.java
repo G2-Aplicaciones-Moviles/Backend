@@ -1,6 +1,5 @@
 package pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform;
 
-import pe.edu.upc.center.jameoFit.recipes.domain.model.aggregates.Ingredient;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.aggregates.Recipe;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
 
@@ -10,9 +9,9 @@ import java.util.stream.Collectors;
 public class RecipeResourceFromEntityAssembler {
 
     public static RecipeResource toResourceFromEntity(Recipe recipe) {
-        List<String> ingredientNames = recipe.getIngredients()
+        var ingredientNames = recipe.getRecipeIngredients()
                 .stream()
-                .map(Ingredient::getName)
+                .map(ri -> ri.getIngredient().getName())
                 .toList();
 
         return new RecipeResource(
