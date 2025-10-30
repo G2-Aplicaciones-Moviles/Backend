@@ -7,9 +7,6 @@ import lombok.ToString;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.MacronutrientValuesId;
 import pe.edu.upc.center.jameoFit.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Getter
 @Entity
 @Table(name = "ingredients")
@@ -17,34 +14,30 @@ import java.util.Set;
 @NoArgsConstructor
 public class Ingredient extends AuditableAbstractAggregateRoot<Ingredient> {
 
-    @Getter
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Getter
     @Column(name = "calories", nullable = false)
     private double calories;
 
-    @Getter
     @Column(name = "carbohydrates", nullable = false)
     private double carbohydrates;
 
-    @Getter
     @Column(name = "proteins", nullable = false)
     private double proteins;
 
-    @Getter
     @Column(name = "fats", nullable = false)
     private double fats;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "macronutrientValuesId", column = @Column(name = "macronutrient_values_id", nullable = false))
+            @AttributeOverride(name = "macronutrientValuesId",
+                    column = @Column(name = "macronutrient_values_id", nullable = false))
     })
     private MacronutrientValuesId macronutrientValuesId = new MacronutrientValuesId();
 
-    @ManyToMany(mappedBy = "ingredients")
-    private Set<Recipe> recipes = new HashSet<>();
+    // 🔥 Eliminado el @ManyToMany(mappedBy = "ingredients")
+    // Ya no existe vínculo directo con Recipe, se maneja por RecipeIngredient.
 
     // -----------------------------------
 

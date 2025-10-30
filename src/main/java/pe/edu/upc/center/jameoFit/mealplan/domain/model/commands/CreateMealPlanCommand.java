@@ -12,7 +12,6 @@ public record CreateMealPlanCommand(
         UserProfileId profileId,
         String category,
         Boolean isCurrent,
-        List<CreateMealPlanEntryCommand> entries,
         List<String> tags
 ) {
 }

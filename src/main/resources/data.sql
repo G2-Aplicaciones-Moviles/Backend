@@ -6,11 +6,19 @@ DELETE FROM recipe_ingredients;
 DELETE FROM allergy_ingredients;
 DELETE FROM recommendations;
 DELETE FROM meal_plans;
+<<<<<<< Updated upstream
 DELETE FROM nutritionists;
 DELETE FROM user_roles;
 DELETE FROM users;
 -- Join table entre user_profiles y allergies: debe borrarse antes de allergies
 DELETE FROM user_profile_allergies;
+=======
+DELETE FROM user_profile_allergies;
+
+-- 🔹 NUEVAS LÍNEAS PARA EVITAR FK ERRORS
+DELETE FROM user_profile_allergies;
+DELETE FROM user_profiles;
+>>>>>>> Stashed changes
 
 -- Intermedias / que dependen de catálogos
 DELETE FROM recipes;
@@ -109,6 +117,7 @@ INSERT INTO recommendations (id, user_id, template_id, reason, notes, time_of_da
                                                                                                                                            (4, NULL, 4, 'Ingesta elevada de ultraprocesados.', 'Reducir la cantidad de snacks ultraprocesados.', 'EVENING', 6.5, 'ACTIVE', NULL, NOW(), NOW()),
                                                                                                                                            (5, NULL, 5, 'Indicios de fatiga y sueño irregular.', 'Ajustar horario y condiciones para dormir mejor.', 'EVENING', 9.0, 'ACTIVE', NULL, NOW(), NOW());
 
+<<<<<<< Updated upstream
 -- ==============================================
 -- SEED DE RECIPES
 -- ==============================================
@@ -187,6 +196,54 @@ VALUES
 
 -- ==============================================
 -- RESET SEQUENCES
+=======
+
+-- ==============================================
+-- SEED DE RECIPES
+-- ==============================================
+INSERT INTO recipes (user_id, name, description, preparation_time, difficulty, category_id, recipe_type_id, created_at, updated_at) VALUES
+                                                                                                                                        (1, 'Avena con Frutas', 'Avena cocida con plátano, fresas y miel. Rica en fibra y energía para empezar el día.', 10, 'Fácil', 1, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Omelette de Vegetales', 'Tortilla de huevos con pimientos, cebolla y tomate. Alto en proteínas.', 15, 'Fácil', 1, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Smoothie Bowl Verde', 'Bowl de smoothie de espinaca, plátano y proteína vegetal, decorado con granola.', 8, 'Fácil', 1, 2, NOW(), NOW()),
+                                                                                                                                        (1, 'Pancakes Proteicos', 'Pancakes hechos con harina de avena, claras de huevo y plátano.', 20, 'Media', 1, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Tostadas Integrales con Aguacate', 'Pan integral tostado con aguacate machacado, tomate y semillas.', 10, 'Fácil', 1, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Pollo a la Plancha con Quinoa', 'Pechuga de pollo asada con quinoa y ensalada de vegetales frescos.', 30, 'Media', 2, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Ensalada César con Pollo', 'Lechuga romana, pollo grillado, crutones y aderezo césar casero.', 20, 'Fácil', 2, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Pasta Integral con Vegetales', 'Pasta de trigo integral con calabacín, tomate cherry y albahaca.', 25, 'Media', 2, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Bowl Vegetariano', 'Arroz integral con garbanzos, aguacate, zanahoria rallada y hummus.', 25, 'Media', 2, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Salmón al Horno con Brócoli', 'Filete de salmón horneado con brócoli al vapor y limón.', 35, 'Media', 2, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Sopa de Lentejas', 'Sopa nutritiva de lentejas con zanahoria, apio y especias.', 40, 'Fácil', 3, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Tacos de Pollo', 'Tortillas de maíz con pollo desmenuzado, pico de gallo y aguacate.', 25, 'Media', 3, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Ensalada Caprese', 'Tomate, mozzarella fresca, albahaca y aceite de oliva.', 10, 'Fácil', 3, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Wrap de Atún', 'Tortilla integral rellena de atún, lechuga, pepino y yogurt griego.', 15, 'Fácil', 3, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Tortilla Española Light', 'Tortilla de papas y cebolla con menos aceite, versión saludable.', 30, 'Media', 3, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Hummus con Vegetales', 'Hummus casero de garbanzos con palitos de zanahoria y pepino.', 10, 'Fácil', 4, 2, NOW(), NOW()),
+                                                                                                                                        (1, 'Yogurt Griego con Nueces', 'Yogurt griego natural con nueces picadas y miel.', 5, 'Fácil', 4, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Batido de Proteína', 'Batido de proteína de suero con leche de almendras y plátano.', 5, 'Fácil', 4, 3, NOW(), NOW()),
+                                                                                                                                        (1, 'Frutas con Mantequilla de Maní', 'Manzana o plátano con mantequilla de maní natural.', 5, 'Fácil', 4, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Energy Balls', 'Bolitas de dátiles, avena, cacao y almendras. Sin azúcar añadida.', 15, 'Fácil', 4, 2, NOW(), NOW()),
+                                                                                                                                        (1, 'Brownie Saludable', 'Brownie hecho con harina de almendra, cacao puro y endulzante natural.', 30, 'Media', 5, 1, NOW(), NOW()),
+                                                                                                                                        (1, 'Helado de Plátano', 'Helado cremoso hecho solo con plátanos congelados y cacao.', 5, 'Fácil', 5, 2, NOW(), NOW()),
+                                                                                                                                        (1, 'Pudín de Chía', 'Pudín de semillas de chía con leche de coco y frutas frescas.', 10, 'Fácil', 5, 2, NOW(), NOW()),
+                                                                                                                                        (1, 'Muffins de Arándanos', 'Muffins integrales con arándanos frescos y avena.', 25, 'Media', 5, 4, NOW(), NOW()),
+                                                                                                                                        (1, 'Galletas de Avena', 'Galletas crujientes de avena con pasas y canela, sin azúcar refinada.', 20, 'Fácil', 5, 4, NOW(), NOW());
+
+-- ==============================================
+-- SEED DE RECIPE_INGREDIENTS (con amount_grams)
+-- ==============================================
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount_grams) VALUES
+                                                                            (17, 1, 30), (17, 5, 120),
+                                                                            (16, 2, 80), (16, 3, 50),
+                                                                            (13, 2, 100), (13, 6, 60),
+                                                                            (20, 1, 40), (20, 4, 30),
+                                                                            (21, 1, 25), (21, 5, 100),
+                                                                            (10, 2, 70), (11, 3, 50),
+                                                                            (12, 2, 60), (12, 3, 40),
+                                                                            (14, 2, 50), (15, 3, 60);
+
+-- ==============================================
+-- RESETEAR SECUENCIAS
+>>>>>>> Stashed changes
 -- ==============================================
 SELECT setval('recipes_id_seq', (SELECT MAX(id) FROM recipes) + 1);
 SELECT setval('recommendations_id_seq', (SELECT MAX(id) FROM recommendations) + 1);

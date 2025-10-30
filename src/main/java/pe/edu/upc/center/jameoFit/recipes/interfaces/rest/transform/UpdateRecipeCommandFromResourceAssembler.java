@@ -12,8 +12,8 @@ public class UpdateRecipeCommandFromResourceAssembler {
                 resource.description(),
                 resource.preparationTime(),
                 resource.difficulty(),
-                resource.category(),
-                resource.recipeType()
+                resource.categoryId(),
+                resource.recipeTypeId()
         );
     }
 }

@@ -44,10 +44,10 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
         // Validar existencia de UserId
         externalProfileAndTrackingService.validateUserExists(new UserId(command.userId()));
 
-        var category = categoryRepository.findByName(command.categoryName())
+        var category = categoryRepository.findById(command.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-        var recipeType = recipeTypeRepository.findByName(command.recipeTypeName())
+        var recipeType = recipeTypeRepository.findById(command.recipeTypeId())
                 .orElseThrow(() -> new IllegalArgumentException("Recipe type not found"));
 
         var recipe = new Recipe(
@@ -83,10 +83,10 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
             throw new IllegalArgumentException("Another recipe with the name " + command.name() + " already exists.");
         }
 
-        var category = categoryRepository.findByName(command.categoryName())
+        var category = categoryRepository.findById(command.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-        var recipeType = recipeTypeRepository.findByName(command.recipeTypeName())
+        var recipeType = recipeTypeRepository.findById(command.recipeTypeId())
                 .orElseThrow(() -> new IllegalArgumentException("Recipe type not found"));
 
         // Actualizar los datos
@@ -121,22 +121,21 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
 
     @Override
     public void handle(AddIngredientToRecipeCommand command) {
+        if (command.amountGrams() <= 0)
+            throw new IllegalArgumentException("amountGrams must be > 0");
+
         var optionalRecipe = recipeRepository.findById(command.recipeId());
         var optionalIngredient = ingredientRepository.findById(command.ingredientId());
 
-        if (optionalRecipe.isEmpty() || optionalIngredient.isEmpty()) {
+        if (optionalRecipe.isEmpty() || optionalIngredient.isEmpty())
             throw new IllegalArgumentException("Recipe or Ingredient not found.");
-        }
 
         var recipe = optionalRecipe.get();
         var ingredient = optionalIngredient.get();
 
-        // Evitar duplicados
-        if (recipe.getIngredients().contains(ingredient)) {
-            throw new IllegalArgumentException("Ingredient already added to the recipe.");
-        }
+        // Usar helper del agregado para mantener la invariantes
+        recipe.addIngredient(ingredient, command.amountGrams());
 
-        recipe.getIngredients().add(ingredient);
-        recipeRepository.save(recipe);
+        recipeRepository.save(recipe); // Cascade ALL persistirá RecipeIngredient
     }
 }
