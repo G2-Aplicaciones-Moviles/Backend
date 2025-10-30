@@ -6,19 +6,11 @@ DELETE FROM recipe_ingredients;
 DELETE FROM allergy_ingredients;
 DELETE FROM recommendations;
 DELETE FROM meal_plans;
-<<<<<<< Updated upstream
 DELETE FROM nutritionists;
 DELETE FROM user_roles;
 DELETE FROM users;
--- Join table entre user_profiles y allergies: debe borrarse antes de allergies
-DELETE FROM user_profile_allergies;
-=======
-DELETE FROM user_profile_allergies;
-
--- 🔹 NUEVAS LÍNEAS PARA EVITAR FK ERRORS
 DELETE FROM user_profile_allergies;
 DELETE FROM user_profiles;
->>>>>>> Stashed changes
 
 -- Intermedias / que dependen de catálogos
 DELETE FROM recipes;
@@ -117,49 +109,6 @@ INSERT INTO recommendations (id, user_id, template_id, reason, notes, time_of_da
                                                                                                                                            (4, NULL, 4, 'Ingesta elevada de ultraprocesados.', 'Reducir la cantidad de snacks ultraprocesados.', 'EVENING', 6.5, 'ACTIVE', NULL, NOW(), NOW()),
                                                                                                                                            (5, NULL, 5, 'Indicios de fatiga y sueño irregular.', 'Ajustar horario y condiciones para dormir mejor.', 'EVENING', 9.0, 'ACTIVE', NULL, NOW(), NOW());
 
-<<<<<<< Updated upstream
--- ==============================================
--- SEED DE RECIPES
--- ==============================================
-INSERT INTO recipes (id, user_id, name, description, preparation_time, difficulty, category_id, recipe_type_id, created_at, updated_at) VALUES
-                                                                                                                                            (1, 1, 'Avena con Frutas', 'Avena cocida con plátano, fresas y miel.', 10, 'Fácil', 1, 4, NOW(), NOW()),
-                                                                                                                                            (2, 1, 'Omelette de Vegetales', 'Tortilla con cebolla y tomate.', 15, 'Fácil', 1, 3, NOW(), NOW()),
-                                                                                                                                            (3, 1, 'Smoothie Bowl Verde', 'Smoothie de espinaca, plátano y granola.', 8, 'Fácil', 1, 2, NOW(), NOW()),
-                                                                                                                                            (4, 1, 'Pancakes Proteicos', 'Pancakes de avena y clara de huevo.', 20, 'Media', 1, 3, NOW(), NOW()),
-                                                                                                                                            (5, 1, 'Tostadas Integrales con Aguacate', 'Pan integral con aguacate y tomate.', 10, 'Fácil', 1, 4, NOW(), NOW()),
-                                                                                                                                            (6, 1, 'Pollo a la Plancha con Quinoa', 'Pollo asado con quinoa.', 30, 'Media', 2, 3, NOW(), NOW()),
-                                                                                                                                            (7, 1, 'Ensalada César con Pollo', 'Pollo grillado con aderezo césar.', 20, 'Fácil', 2, 3, NOW(), NOW()),
-                                                                                                                                            (8, 1, 'Pasta Integral con Vegetales', 'Pasta integral con tomate y albahaca.', 25, 'Media', 2, 4, NOW(), NOW()),
-                                                                                                                                            (9, 1, 'Bowl Vegetariano', 'Arroz integral con garbanzos.', 25, 'Media', 2, 4, NOW(), NOW()),
-                                                                                                                                            (10, 1, 'Salmón al Horno con Brócoli', 'Salmón con brócoli al vapor.', 35, 'Media', 2, 3, NOW(), NOW()),
-                                                                                                                                            (11, 1, 'Sopa de Lentejas', 'Lentejas con zanahoria y apio.', 40, 'Fácil', 3, 4, NOW(), NOW()),
-                                                                                                                                            (12, 1, 'Tacos de Pollo', 'Tacos con pollo y aguacate.', 25, 'Media', 3, 3, NOW(), NOW()),
-                                                                                                                                            (13, 1, 'Ensalada Caprese', 'Tomate, mozzarella y albahaca.', 10, 'Fácil', 3, 4, NOW(), NOW()),
-                                                                                                                                            (14, 1, 'Wrap de Atún', 'Atún con pepino y yogurt griego.', 15, 'Fácil', 3, 3, NOW(), NOW()),
-                                                                                                                                            (15, 1, 'Tortilla Española Light', 'Tortilla de papas y cebolla.', 30, 'Media', 3, 3, NOW(), NOW()),
-                                                                                                                                            (16, 1, 'Hummus con Vegetales', 'Hummus con palitos de zanahoria.', 10, 'Fácil', 4, 2, NOW(), NOW()),
-                                                                                                                                            (17, 1, 'Yogurt Griego con Nueces', 'Yogurt con nueces y miel.', 5, 'Fácil', 4, 4, NOW(), NOW()),
-                                                                                                                                            (18, 1, 'Batido de Proteína', 'Proteína con leche de almendras.', 5, 'Fácil', 4, 3, NOW(), NOW()),
-                                                                                                                                            (19, 1, 'Frutas con Mantequilla de Maní', 'Fruta con mantequilla de maní.', 5, 'Fácil', 4, 4, NOW(), NOW()),
-                                                                                                                                            (20, 1, 'Energy Balls', 'Bolitas de dátiles y almendras.', 15, 'Fácil', 4, 2, NOW(), NOW()),
-                                                                                                                                            (21, 1, 'Brownie Saludable', 'Brownie con harina de almendra.', 30, 'Media', 5, 1, NOW(), NOW()),
-                                                                                                                                            (22, 1, 'Helado de Plátano', 'Helado de plátano y cacao.', 5, 'Fácil', 5, 2, NOW(), NOW()),
-                                                                                                                                            (23, 1, 'Pudín de Chía', 'Chía con leche de coco.', 10, 'Fácil', 5, 2, NOW(), NOW()),
-                                                                                                                                            (24, 1, 'Muffins de Arándanos', 'Muffins integrales con avena.', 25, 'Media', 5, 4, NOW(), NOW()),
-                                                                                                                                            (25, 1, 'Galletas de Avena', 'Galletas crujientes con pasas.', 20, 'Fácil', 5, 4, NOW(), NOW());
-
--- ==============================================
--- SEED DE RECIPE_INGREDIENTS (Relaciones válidas)
--- ==============================================
-INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES
-                                                              (17, 1), (17, 5),  -- Yogurt Griego con Nueces
-                                                              (16, 2), (16, 3),  -- Hummus con Vegetales
-                                                              (13, 2), (13, 6),  -- Ensalada Caprese
-                                                              (20, 1), (20, 4),  -- Energy Balls
-                                                              (21, 1), (21, 5),  -- Brownie Saludable
-                                                              (10, 2), (11, 3), (12, 2), (12, 3), (14, 2), (15, 3);  -- Otros
-
--- ==============================================
 -- SEED DE USERS Y NUTRITIONISTS
 -- ==============================================
 -- Crear usuarios base primero
@@ -196,7 +145,7 @@ VALUES
 
 -- ==============================================
 -- RESET SEQUENCES
-=======
+
 
 -- ==============================================
 -- SEED DE RECIPES
@@ -243,7 +192,7 @@ INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount_grams) VALUES
 
 -- ==============================================
 -- RESETEAR SECUENCIAS
->>>>>>> Stashed changes
+
 -- ==============================================
 SELECT setval('recipes_id_seq', (SELECT MAX(id) FROM recipes) + 1);
 SELECT setval('recommendations_id_seq', (SELECT MAX(id) FROM recommendations) + 1);
