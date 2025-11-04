@@ -11,5 +11,5 @@ public record UserProfileDto(
         double weightKg,
         double activityFactor,
         String objectiveName,
-        String birthDate // ISO yyyy-MM-dd
+        String birthDate
 ) {}

@@ -2,6 +2,7 @@ package pe.edu.upc.center.jameoFit.tracking.application.internal.outboundservice
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.acl.RecipeContextFacade;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeNutritionResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.valueobjects.RecipeId;
 
@@ -51,5 +52,15 @@ public class ExternalRecipeService {
      */
     public List<RecipeResource> getAllRecipes() {
         return recipeContextFacade.fetchAll();
+    }
+
+    public Optional<RecipeNutritionResource> fetchNutritionByRecipeId(RecipeId recipeId) {
+        try {
+            // RecipeContextFacade devuelve Optional<RecipeResource> y tiene método fetchNutritionByRecipeId
+            // pero aquí usamos el facade que expone fetchNutritionByRecipeId(int)
+            return Optional.ofNullable(recipeContextFacade.fetchNutritionByRecipeId(Math.toIntExact(recipeId.recipeId())));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 }
