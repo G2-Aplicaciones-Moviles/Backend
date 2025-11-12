@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.center.jameoFit.mealplan.domain.model.commands.DeleteMealPlanCommand;
+import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetAllMealPlanByProfileIdQuery;
 import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetAllMealPlanQuery;
 import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetEntriesWithRecipeInfo;
 import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetMealPlanByIdQuery;
@@ -147,6 +148,42 @@ public class MealPlanController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/profile/{profileId}")
+    @Operation(
+            summary = "Get all meal plans by profile ID",
+            description = "Returns all meal plans belonging to a specific user profile",
+            operationId = "getMealPlansByProfileId",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Successful operation",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = MealPlanResource.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "No meal plans found for this profile",
+                            content = @Content(mediaType = "application/json")
+                    )
+            }
+    )
+    public ResponseEntity<List<MealPlanResource>> getMealPlansByProfileId(@PathVariable int profileId) {
+        var getAllMealPlanByProfileIdQuery = new GetAllMealPlanByProfileIdQuery(profileId);
+        var mealPlans = this.mealPlanQueryService.handle(getAllMealPlanByProfileIdQuery);
+
+        if (mealPlans.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        var resources = mealPlans.stream()
+                .map(MealPlanResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+
+        return ResponseEntity.ok(resources);
     }
 
 }
