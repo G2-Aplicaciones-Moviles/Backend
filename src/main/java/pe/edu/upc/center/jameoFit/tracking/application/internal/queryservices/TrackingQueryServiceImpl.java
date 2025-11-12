@@ -30,7 +30,8 @@ public class TrackingQueryServiceImpl implements TrackingQueryService {
 
     @Override
     public List<TrackingMealPlanEntry> handle(GetAllMealsQuery query) {
-        return trackingMealPlanEntryRepository.findAllByTrackingId(query.TrackingId());
+        // Aseguramos pasar Long al repo (evita errors por primitivos/overloads)
+        return trackingMealPlanEntryRepository.findAllByTracking_Id(Long.valueOf(query.TrackingId()));
     }
 
     @Override

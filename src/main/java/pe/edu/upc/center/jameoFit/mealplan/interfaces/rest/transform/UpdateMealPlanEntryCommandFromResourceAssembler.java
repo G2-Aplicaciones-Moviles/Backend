@@ -7,10 +7,10 @@ import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.MealPlanEnt
 public class UpdateMealPlanEntryCommandFromResourceAssembler {
     public static UpdateMealPlanEntryCommand toCommandFromResource(MealPlanEntryResource resource) {
         return new UpdateMealPlanEntryCommand(
-            resource.id(),
+                resource.id(),
                 new RecipeId(resource.recipeId()),
-                resource.mealPlanType(),
-                resource.day(),
+                resource.day(),           // ← primero day
+                resource.mealPlanType(),  // ← luego mealPlanTypeId
                 resource.mealPlanId()
         );
     }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.ToString;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.entities.Category;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.entities.RecipeIngredient;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.entities.RecipeType;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.UserId;
 import pe.edu.upc.center.jameoFit.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
@@ -43,20 +44,26 @@ public class Recipe extends AuditableAbstractAggregateRoot<Recipe> {
     @JoinColumn(name = "recipe_type_id", nullable = false)
     private RecipeType recipeType;
 
-    @ManyToMany
-    @JoinTable(
-            name = "recipe_ingredients",
-            joinColumns = @JoinColumn(name = "recipe_id"),
-            inverseJoinColumns = @JoinColumn(name = "ingredient_id")
-    )
-    private Set<Ingredient> ingredients = new HashSet<>();
+    // ⬇️ ÚNICA colección válida tras la migración a entidad puente
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RecipeIngredient> recipeIngredients = new HashSet<>();
 
-    // Constructor vacío requerido por JPA
-    public Recipe() {
-        this.userId = new UserId();
+    public Set<RecipeIngredient> getRecipeIngredients() {
+        return recipeIngredients;
     }
 
-    // Constructor principal usado desde CommandService
+    public void addIngredient(Ingredient ingredient, double amountGrams) {
+        var exists = this.recipeIngredients.stream()
+                .anyMatch(ri -> ri.getIngredient().getId() == ingredient.getId()); // ✅
+
+        if (exists) throw new IllegalArgumentException("Ingredient already added to the recipe.");
+
+        var ri = new RecipeIngredient(this, ingredient, amountGrams);
+        this.recipeIngredients.add(ri);
+    }
+
+    public Recipe() { this.userId = new UserId(); }
+
     public Recipe(Long userId, String name, String description, int preparationTime,
                   String difficulty, Category category, RecipeType recipeType) {
         this.userId = new UserId(userId);
@@ -78,8 +85,5 @@ public class Recipe extends AuditableAbstractAggregateRoot<Recipe> {
         this.recipeType = recipeType;
     }
 
-    public Long getUserId() {
-        return this.userId.userId();
-    }
+    public Long getUserId() { return this.userId.userId(); }
 }
-

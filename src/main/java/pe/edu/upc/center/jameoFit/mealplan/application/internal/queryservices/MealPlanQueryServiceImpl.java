@@ -37,7 +37,7 @@ public class MealPlanQueryServiceImpl implements MealPlanQueryService {
     }
 
     public List<MealPlanEntryDetailedResource> handle(GetEntriesWithRecipeInfo query) {
-        var entries = mealPlanEntryRepository.findAllByMealPlanId(query.mealPlanId());
+        var entries = mealPlanEntryRepository.findAllByMealPlan_Id(query.mealPlanId());
 
         return entries.stream().map(entry -> {
             var recipeOpt = externalMealPlanRecipeService.fetchRecipeById(entry.getRecipeId().recipeId());
@@ -74,6 +74,6 @@ public class MealPlanQueryServiceImpl implements MealPlanQueryService {
 
     @Override
     public List<MealPlan> handle(GetAllMealPlanByProfileIdQuery query) {
-        return this.mealPlanRepository.findAllByProfileId(query.ProfileId());
+        return this.mealPlanRepository.findAllByProfileId_UserProfileId(query.ProfileId());
     }
 }

@@ -5,10 +5,13 @@ import pe.edu.upc.center.jameoFit.recipes.domain.model.commands.DeleteRecipeComm
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeCommandService;
+import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeNutritionService;
 import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeQueryService;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.CreateRecipeResource;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeNutritionResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.CreateRecipeCommandFromResourceAssembler;
+import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.RecipeNutritionResourceAssembler;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.transform.RecipeResourceFromEntityAssembler;
 
 import java.util.List;
@@ -19,11 +22,16 @@ public class RecipeContextFacade {
 
     private final RecipeCommandService commandService;
     private final RecipeQueryService queryService;
+    private final RecipeNutritionService nutritionService;
+    private final RecipeNutritionService recipeNutritionService;
 
     public RecipeContextFacade(RecipeCommandService commandService,
-                               RecipeQueryService queryService) {
+                               RecipeQueryService queryService,
+                               RecipeNutritionService nutritionService, RecipeNutritionService recipeNutritionService) {
         this.commandService = commandService;
         this.queryService = queryService;
+        this.nutritionService = nutritionService;
+        this.recipeNutritionService = recipeNutritionService;
     }
 
     public List<RecipeResource> fetchAll() {
@@ -50,4 +58,15 @@ public class RecipeContextFacade {
                 .stream()
                 .anyMatch(recipe -> recipe.getName().equalsIgnoreCase(name));
     }
+
+    public RecipeNutritionResource fetchNutritionByRecipeId(int recipeId) {
+        var opt = queryService.handle(new GetRecipesByIdQuery(recipeId));
+        if (opt.isEmpty())
+            throw new IllegalArgumentException("Recipe not found");
+
+        var nutritionVO = recipeNutritionService.compute(opt.get());
+        return RecipeNutritionResourceAssembler.toResource(nutritionVO);
+    }
+
+
 }

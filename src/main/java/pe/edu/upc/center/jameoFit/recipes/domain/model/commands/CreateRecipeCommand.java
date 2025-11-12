@@ -6,6 +6,6 @@ public record CreateRecipeCommand(
         String description,
         int preparationTime,
         String difficulty,
-        String categoryName,
-        String recipeTypeName
-) { }
+        Long categoryId,
+        Long recipeTypeId
+) {}

@@ -6,6 +6,7 @@ import pe.edu.upc.center.jameoFit.mealplan.domain.model.valueobjects.UserProfile
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.CreateMealPlanResource;
 
 public class CreateMealPlanCommandFromResourceAssembler {
+
     public static CreateMealPlanCommand toCommandFromResource(CreateMealPlanResource resource) {
         return new CreateMealPlanCommand(
                 resource.name(),
@@ -19,9 +20,6 @@ public class CreateMealPlanCommandFromResourceAssembler {
                 new UserProfileId(resource.profileId()),
                 resource.category(),
                 resource.isCurrent(),
-                resource.entries().stream()
-                        .map(CreateMealPlanEntryCommandFromResourceAssembler::toCommandFromResource)
-                        .toList(),
                 resource.tags()
         );
     }

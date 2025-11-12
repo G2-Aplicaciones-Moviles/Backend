@@ -1,5 +1,6 @@
 package pe.edu.upc.center.jameoFit.tracking.domain.model.aggregates;
 
+import lombok.Setter;
 import pe.edu.upc.center.jameoFit.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.MacronutrientValues;
 import pe.edu.upc.center.jameoFit.tracking.domain.model.Entities.TrackingGoal;
@@ -13,6 +14,7 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -32,6 +34,11 @@ public class Tracking extends AuditableAbstractAggregateRoot<Tracking> {
     @JoinColumn(name = "tracking_goal_id", nullable = false)
     private TrackingGoal trackingGoal;
 
+    /**
+     * -- SETTER --
+     *  Setter directo para consumed macros (útil desde services que calculan y persisten un nuevo MacronutrientValues).
+     */
+    @Setter
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "consumed_macros_id", referencedColumnName = "id")
     private MacronutrientValues consumedMacros;
@@ -86,4 +93,20 @@ public class Tracking extends AuditableAbstractAggregateRoot<Tracking> {
         this.mealPlanEntries.addEntry(newEntry);
     }
 
+    /**
+     * Agrega (suma) macronutrientes consumidos.
+     * Nota: este método solo actualiza el estado en memoria; el service debe persistir el MacronutrientValues resultante y guardar el aggregate.
+     */
+    public void addConsumedMacros(MacronutrientValues addition) {
+        if (addition == null) return;
+        if (this.consumedMacros == null) {
+            this.consumedMacros = addition;
+        } else {
+            double newCalories = this.consumedMacros.getCalories() + addition.getCalories();
+            double newCarbs = this.consumedMacros.getCarbs() + addition.getCarbs();
+            double newProteins = this.consumedMacros.getProteins() + addition.getProteins();
+            double newFats = this.consumedMacros.getFats() + addition.getFats();
+            this.consumedMacros = new MacronutrientValues(newCalories, newCarbs, newProteins, newFats);
+        }
+    }
 }
