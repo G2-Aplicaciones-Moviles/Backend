@@ -109,6 +109,11 @@ INSERT INTO recommendations (id, user_id, template_id, reason, notes, time_of_da
                                                                                                                                            (4, NULL, 4, 'Ingesta elevada de ultraprocesados.', 'Reducir la cantidad de snacks ultraprocesados.', 'EVENING', 6.5, 'ACTIVE', NULL, NOW(), NOW()),
                                                                                                                                            (5, NULL, 5, 'Indicios de fatiga y sueño irregular.', 'Ajustar horario y condiciones para dormir mejor.', 'EVENING', 9.0, 'ACTIVE', NULL, NOW(), NOW());
 
+
+
+
+
+
 -- SEED DE USERS Y NUTRITIONISTS
 -- ==============================================
 -- Crear usuarios base primero
