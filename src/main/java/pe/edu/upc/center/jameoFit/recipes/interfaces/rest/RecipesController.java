@@ -5,11 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.center.jameoFit.recipes.aplication.internal.commandservices.RecipeCommandServiceImpl;
+import pe.edu.upc.center.jameoFit.recipes.aplication.internal.outboundedservices.ExternalProfileAndTrackingService;
 import pe.edu.upc.center.jameoFit.recipes.aplication.internal.queryservices.RecipeQueryServiceImpl;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.commands.CreateRecipeCommand;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.commands.DeleteRecipeCommand;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesByCategoryIdQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetRecipesByIdQuery;
+import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.UserId;
 import pe.edu.upc.center.jameoFit.recipes.domain.services.RecipeNutritionService;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.AddIngredientToRecipeResource;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.CreateRecipeResource;
@@ -27,24 +30,63 @@ public class RecipesController {
     private final RecipeCommandServiceImpl recipeCommandService;
     private final RecipeQueryServiceImpl recipeQueryService;
     private final RecipeNutritionService recipeNutritionService;
+    private final ExternalProfileAndTrackingService externalService;
 
     public RecipesController(RecipeCommandServiceImpl recipeCommandService, RecipeQueryServiceImpl recipeQueryService,
-                             RecipeNutritionService recipeNutritionService) {
+                             RecipeNutritionService recipeNutritionService, ExternalProfileAndTrackingService externalService) {
         this.recipeCommandService = recipeCommandService;
         this.recipeQueryService = recipeQueryService;
         this.recipeNutritionService = recipeNutritionService;
+        this.externalService = externalService;
     }
 
-    @PostMapping
-    public ResponseEntity<RecipeResource> createRecipe(@RequestBody CreateRecipeResource resource) {
-        var createRecipeCommand = CreateRecipeCommandFromResourceAssembler.toCommandFromResource(resource);
-        var recipeId = this.recipeCommandService.handle(createRecipeCommand);
+    @PostMapping("/users/{userId}")
+    public ResponseEntity<RecipeResource> createRecipeForUser(
+            @PathVariable Long userId,
+            @RequestBody CreateRecipeResource resource) {
 
-        var getRecipeByIdQuery = new GetRecipesByIdQuery(recipeId);
-        var optionalRecipe = this.recipeQueryService.handle(getRecipeByIdQuery);
+        externalService.validateUserProfile(new UserId(userId));
 
-        if (optionalRecipe.isEmpty())
-            return ResponseEntity.notFound().build();
+        var command = new CreateRecipeCommand(
+                userId,
+                resource.name(),
+                resource.description(),
+                resource.preparationTime(),
+                resource.difficulty(),
+                resource.categoryId(),
+                resource.recipeTypeId()
+        );
+
+        int recipeId = this.recipeCommandService.handle(command);
+
+        var optionalRecipe = this.recipeQueryService.handle(new GetRecipesByIdQuery(recipeId));
+        if (optionalRecipe.isEmpty()) return ResponseEntity.notFound().build();
+
+        var recipeResource = RecipeResourceFromEntityAssembler.toResourceFromEntity(optionalRecipe.get());
+        return new ResponseEntity<>(recipeResource, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/nutritionists/{userId}")
+    public ResponseEntity<RecipeResource> createRecipeForNutritionist(
+            @PathVariable Long userId,
+            @RequestBody CreateRecipeResource resource) {
+
+        externalService.validateNutritionist(new UserId(userId));
+
+        var command = new CreateRecipeCommand(
+                userId,
+                resource.name(),
+                resource.description(),
+                resource.preparationTime(),
+                resource.difficulty(),
+                resource.categoryId(),
+                resource.recipeTypeId()
+        );
+
+        int recipeId = this.recipeCommandService.handle(command);
+
+        var optionalRecipe = this.recipeQueryService.handle(new GetRecipesByIdQuery(recipeId));
+        if (optionalRecipe.isEmpty()) return ResponseEntity.notFound().build();
 
         var recipeResource = RecipeResourceFromEntityAssembler.toResourceFromEntity(optionalRecipe.get());
         return new ResponseEntity<>(recipeResource, HttpStatus.CREATED);

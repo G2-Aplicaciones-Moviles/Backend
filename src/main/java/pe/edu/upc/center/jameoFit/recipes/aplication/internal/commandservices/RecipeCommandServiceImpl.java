@@ -41,9 +41,6 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
             throw new IllegalArgumentException("A recipe with the name " + command.name() + " already exists.");
         }
 
-        // Validar existencia de UserId
-        externalProfileAndTrackingService.validateUserExists(new UserId(command.userId()));
-
         var category = categoryRepository.findById(command.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 

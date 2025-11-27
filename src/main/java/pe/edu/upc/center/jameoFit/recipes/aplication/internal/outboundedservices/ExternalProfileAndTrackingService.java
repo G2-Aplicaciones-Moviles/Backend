@@ -6,6 +6,7 @@ import pe.edu.upc.center.jameoFit.profiles.interfaces.acl.UserProfilesContextFac
 import pe.edu.upc.center.jameoFit.tracking.interfaces.acl.TrackingContextFacade;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.UserId;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.MacronutrientValuesId;
+import pe.edu.upc.center.jameoFit.nutritionists.infrastructure.persistence.jpa.repositories.NutritionistRepository;
 
 import java.util.Optional;
 
@@ -13,39 +14,59 @@ import java.util.Optional;
 public class ExternalProfileAndTrackingService {
 
     private final UserProfilesContextFacade userProfilesContextFacade;
+    private final NutritionistRepository nutritionistRepository;
     private final TrackingContextFacade trackingContextFacade;
 
-    public ExternalProfileAndTrackingService(UserProfilesContextFacade userProfilesContextFacade,
-                                             @Lazy TrackingContextFacade trackingContextFacade) {
+    public ExternalProfileAndTrackingService(
+            UserProfilesContextFacade userProfilesContextFacade,
+            NutritionistRepository nutritionistRepository,
+            @Lazy TrackingContextFacade trackingContextFacade) {
 
         this.userProfilesContextFacade = userProfilesContextFacade;
+        this.nutritionistRepository = nutritionistRepository;
         this.trackingContextFacade = trackingContextFacade;
     }
 
-    public boolean existsByUserId(UserId userId) {
-        return userProfilesContextFacade.existsProfileById(userId.userId());
-    }
-
-    public Optional<String> getObjectiveNameByUserId(UserId userId) {
-        return userProfilesContextFacade.fetchObjectiveNameByProfileId(userId.userId());
-    }
-
-    public void validateUserExists(UserId userId) {
-        if (!existsByUserId(userId)) {
-            throw new IllegalArgumentException("User profile not found with ID: " + userId.userId());
+    public void validateUserProfile(UserId userId) {
+        if (!userProfilesContextFacade.existsProfileById(userId.userId())) {
+            throw new IllegalArgumentException(
+                    "No regular user profile found with ID: " + userId.userId()
+            );
         }
     }
 
+    public void validateNutritionist(UserId userId) {
+        boolean exists = nutritionistRepository.findByUserId(userId.userId()).isPresent();
+        if (!exists) {
+            throw new IllegalArgumentException(
+                    "No nutritionist found with userId: " + userId.userId()
+            );
+        }
+    }
+
+
+    public Optional<String> getObjectiveNameByUserId(UserId userId) {
+
+        // Solo los USER profiles tienen objectiveName.
+        // Los nutricionistas NO, así que devolvemos empty.
+        if (!userProfilesContextFacade.existsProfileById(userId.userId())) {
+            return Optional.empty();
+        }
+
+        return userProfilesContextFacade.fetchObjectiveNameByProfileId(userId.userId());
+    }
+
     public String getValidatedObjectiveName(UserId userId) {
-        validateUserExists(userId);
+
+        // Intentamos obtener objetivo solo para usuarios normales
         return getObjectiveNameByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "User profile exists but has no objective defined for ID: " + userId.userId()));
+                .orElse("No objective defined (nutritionist or user with no objective)");
     }
 
     public void validateMacronutrientValuesExists(MacronutrientValuesId macronutrientValuesId) {
         if (!trackingContextFacade.validateMacronutrientValuesExists(macronutrientValuesId.macronutrientValuesId())) {
-            throw new IllegalArgumentException("MacronutrientValues not found with ID: " + macronutrientValuesId.macronutrientValuesId());
+            throw new IllegalArgumentException(
+                    "MacronutrientValues not found with ID: " + macronutrientValuesId.macronutrientValuesId());
         }
     }
 }
