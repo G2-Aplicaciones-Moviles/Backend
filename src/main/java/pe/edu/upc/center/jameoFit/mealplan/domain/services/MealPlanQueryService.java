@@ -1,10 +1,7 @@
 package pe.edu.upc.center.jameoFit.mealplan.domain.services;
 
 import pe.edu.upc.center.jameoFit.mealplan.domain.model.aggregates.MealPlan;
-import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetAllMealPlanByProfileIdQuery;
-import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetAllMealPlanQuery;
-import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetEntriesWithRecipeInfo;
-import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.GetMealPlanByIdQuery;
+import pe.edu.upc.center.jameoFit.mealplan.domain.model.queries.*;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.MealPlanEntryDetailedResource;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.queries.GetAllRecipesQuery;
 import pe.edu.upc.center.jameoFit.recipes.interfaces.rest.resources.RecipeResource;
@@ -18,4 +15,6 @@ public interface MealPlanQueryService {
     List<MealPlan> handle(GetAllMealPlanByProfileIdQuery query);
     List<MealPlanEntryDetailedResource> handle(GetEntriesWithRecipeInfo query);
     List<RecipeResource> handle(GetAllRecipesQuery query);
+    List<MealPlan> handle(GetOriginalTemplatesQuery query);
+
 }
