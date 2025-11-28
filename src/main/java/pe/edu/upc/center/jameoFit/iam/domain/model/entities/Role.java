@@ -9,68 +9,40 @@ import pe.edu.upc.center.jameoFit.iam.domain.model.valueobjects.Roles;
 
 import java.util.List;
 
-/**
- * Role entity
- * <p>
- *     This entity represents the role of a user in the system.
- *     It is used to define the permissions of a user.
- * </p>
- */
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @With
 public class Role {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Enumerated(EnumType.STRING)
-  @Column(length = 20)
-  private Roles name;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, unique = true, nullable = false) // ← AGREGAR unique = true
+    private Roles name;
 
-  public Role(Roles name) {
-    this.name = name;
-  }
-
-  /**
-   * Get the name of the role as a string
-   * @return the name of the role as a string
-   */
-  public String getStringName() {
-    return name.name();
-  }
-
-  /**
-   * Get the default role
-   * @return the default role
-   */
-  public static Role getDefaultRole() {
-    return new Role(Roles.ROLE_USER);
-  }
-
-  /**
-   * Get the role from its name
-   * @param name the name of the role
-   * @return the role
-   */
-  public static Role toRoleFromName(String name) {
-    return new Role(Roles.valueOf(name));
-  }
-
-  /**
-   * Validate the role set
-   * <p>
-   *     This method validates the role set and returns the default role if the set is empty.
-   * </p>
-   * @param roles the role set
-   * @return the role set
-   */
-  public static List<Role> validateRoleSet(List<Role> roles) {
-    if (roles == null || roles.isEmpty()) {
-      return List.of(getDefaultRole());
+    public Role(Roles name) {
+        this.name = name;
     }
-    return roles;
-  }
+
+    public String getStringName() {
+        return name.name();
+    }
+
+    public static Role getDefaultRole() {
+        return new Role(Roles.ROLE_USER);
+    }
+
+    public static Role toRoleFromName(String name) {
+        return new Role(Roles.valueOf(name));
+    }
+
+    public static List<Role> validateRoleSet(List<Role> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return List.of(getDefaultRole());
+        }
+        return roles;
+    }
 }

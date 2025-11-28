@@ -1,5 +1,7 @@
 package pe.edu.upc.center.jameoFit.iam.application.internal.commandservices;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import pe.edu.upc.center.jameoFit.iam.domain.model.commands.SeedRolesCommand;
 import pe.edu.upc.center.jameoFit.iam.domain.model.entities.Role;
@@ -11,28 +13,35 @@ import java.util.Arrays;
 
 /**
  * Implementation of {@link RoleCommandService} to handle {@link SeedRolesCommand}
+ * Ensures that roles are created only if they do not exist yet.
  */
 @Service
 public class RoleCommandServiceImpl implements RoleCommandService {
 
-  private final RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoleCommandServiceImpl.class);
 
-  public RoleCommandServiceImpl(RoleRepository roleRepository) {
-    this.roleRepository = roleRepository;
-  }
+    public RoleCommandServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
 
-  /**
-   * This method will handle the {@link SeedRolesCommand} and will create the roles if not exists
-   * @param command {@link SeedRolesCommand}
-   * @see SeedRolesCommand
-   */
-  @Override
-  public void handle(SeedRolesCommand command) {
-    Arrays.stream(Roles.values())
-        .forEach(role -> {
-          if(!roleRepository.existsByName(role)) {
-            roleRepository.save(new Role(Roles.valueOf(role.name())));
-          }
-        } );
-  }
+    /**
+     * Handle the {@link SeedRolesCommand} and create roles if they do not exist.
+     * @param command the seed roles command
+     */
+    @Override
+    public void handle(SeedRolesCommand command) {
+        LOGGER.info("🔍 Executing role seeding...");
+        Arrays.stream(Roles.values()).forEach(roleEnum -> {
+            roleRepository.findByName(roleEnum)
+                    .ifPresentOrElse(
+                            existingRole -> LOGGER.info("⏭️ Role already exists: {}", roleEnum.name()),
+                            () -> {
+                                LOGGER.info("✅ Creating role: {}", roleEnum.name());
+                                roleRepository.save(new Role(roleEnum));
+                            }
+                    );
+        });
+        LOGGER.info("✅ Role seeding finished.");
+    }
 }

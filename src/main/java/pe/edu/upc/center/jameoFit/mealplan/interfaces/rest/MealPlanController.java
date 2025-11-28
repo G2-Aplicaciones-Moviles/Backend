@@ -17,6 +17,7 @@ import pe.edu.upc.center.jameoFit.mealplan.domain.services.MealPlanQueryService;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.CreateMealPlanEntryResource;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.CreateMealPlanResource;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.MealPlanResource;
+import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.resources.MealPlanTemplateResource;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.transform.CreateMealPlanCommandFromResourceAssembler;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.transform.CreateMealPlanEntryCommandFromResourceAssembler;
 import pe.edu.upc.center.jameoFit.mealplan.interfaces.rest.transform.MealPlanResourceFromEntityAssembler;
@@ -230,6 +231,70 @@ public class MealPlanController {
         }
     }
 
+    /**
+     * Obtiene TODOS los meal plan templates creados por nutricionistas
+     * (sin importar qué nutricionista los creó)
+     */
+    @GetMapping("/templates")
+    @Operation(summary = "Get all meal plan templates created by nutritionists")
+    public ResponseEntity<List<MealPlanResource>> getAllTemplates() {
+        var templates = mealPlanQueryService.handle(new GetAllMealPlanQuery())
+                .stream()
+                .filter(mp ->
+                        // Es template si NO tiene profileId (no está asignado a usuario)
+                        mp.getProfileId() == null &&
+                                // Y fue creado por un nutricionista
+                                mp.getCreatedByNutritionistId() != null
+                )
+                .map(MealPlanResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+
+        return ResponseEntity.ok(templates);
+    }
+
+    /**
+     * Obtiene templates creados por nutricionistas con información adicional
+     * (nombre del nutricionista, etc.)
+     */
+    @GetMapping("/templates/detailed")
+    @Operation(summary = "Get all templates with nutritionist info")
+    public ResponseEntity<List<MealPlanTemplateResource>> getAllTemplatesDetailed() {
+        var templates = mealPlanQueryService.handle(new GetAllMealPlanQuery())
+                .stream()
+                .filter(mp ->
+                        mp.getProfileId() == null &&
+                                mp.getCreatedByNutritionistId() != null
+                )
+                .map(mp -> {
+                    // Obtener info del nutricionista vía ACL
+                    String nutritionistName = "Unknown";
+                    try {
+                        // Aquí deberías llamar a tu servicio externo para obtener el nombre
+                        // var nutritionist = externalService.getNutritionistById(mp.getCreatedByNutritionistId());
+                        // nutritionistName = nutritionist.getName();
+                        nutritionistName = "Nutritionist #" + mp.getCreatedByNutritionistId();
+                    } catch (Exception e) {
+                        // Si falla, usar valor por defecto
+                    }
+
+                    return new MealPlanTemplateResource(
+                            mp.getId(),
+                            mp.getName(),
+                            mp.getDescription(),
+                            mp.getCategory(),
+                            mp.getCreatedByNutritionistId(),
+                            nutritionistName,
+                            mp.getMacros() != null ? mp.getMacros().getCalories() : 0,
+                            mp.getMacros() != null ? mp.getMacros().getCarbs() : 0,
+                            mp.getMacros() != null ? mp.getMacros().getProteins() : 0,
+                            mp.getMacros() != null ? mp.getMacros().getFats() : 0
+                    );
+                })
+                .toList();
+
+        return ResponseEntity.ok(templates);
+    }
+
     // ------------------------------------------------------------
     // READ ENDPOINTS
     // ------------------------------------------------------------
@@ -279,4 +344,5 @@ public class MealPlanController {
 
         return ResponseEntity.ok(resources);
     }
+
 }

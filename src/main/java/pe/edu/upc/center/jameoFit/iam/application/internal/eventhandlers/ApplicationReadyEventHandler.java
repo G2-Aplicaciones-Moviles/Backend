@@ -9,6 +9,7 @@ import pe.edu.upc.center.jameoFit.iam.domain.model.commands.SeedRolesCommand;
 import pe.edu.upc.center.jameoFit.iam.domain.services.RoleCommandService;
 
 import java.sql.Timestamp;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * ApplicationReadyEventHandler class
@@ -16,32 +17,41 @@ import java.sql.Timestamp;
  */
 @Service
 public class ApplicationReadyEventHandler {
-  private final RoleCommandService roleCommandService;
-  private static final Logger LOGGER
-      = LoggerFactory.getLogger(ApplicationReadyEventHandler.class);
+    private final RoleCommandService roleCommandService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationReadyEventHandler.class);
 
-  public ApplicationReadyEventHandler(RoleCommandService roleCommandService) {
-    this.roleCommandService = roleCommandService;
-  }
+    // Bandera para asegurar que el seeding solo se ejecute una vez
+    private final AtomicBoolean rolesSeeded = new AtomicBoolean(false);
 
-  /**
-   * Handle the ApplicationReadyEvent
-   * This method is used to seed the roles
-   * @param event the ApplicationReadyEvent the event to handle
-   */
-  @EventListener
-  public void on(ApplicationReadyEvent event) {
-    var applicationName = event.getApplicationContext().getId();
-    LOGGER.info("Starting to verify if roles seeding is needed for {} at {}",
-        applicationName, currentTimestamp());
+    public ApplicationReadyEventHandler(RoleCommandService roleCommandService) {
+        this.roleCommandService = roleCommandService;
+    }
 
-    var seedRolesCommand = new SeedRolesCommand();
-    roleCommandService.handle(seedRolesCommand);
-    LOGGER.info("Roles seeding verification finished for {} at {}",
-        applicationName, currentTimestamp());
-  }
+    /**
+     * Handle the ApplicationReadyEvent
+     * This method is used to seed the roles
+     * @param event the ApplicationReadyEvent the event to handle
+     */
+    @EventListener
+    public void on(ApplicationReadyEvent event) {
+        // Verificar si ya se ejecutó el seeding
+        if (!rolesSeeded.compareAndSet(false, true)) {
+            LOGGER.info("Roles seeding already executed, skipping...");
+            return;
+        }
 
-  private Timestamp currentTimestamp() {
-    return new Timestamp(System.currentTimeMillis());
-  }
+        var applicationName = event.getApplicationContext().getId();
+        LOGGER.info("Starting to verify if roles seeding is needed for {} at {}",
+                applicationName, currentTimestamp());
+
+        var seedRolesCommand = new SeedRolesCommand();
+        roleCommandService.handle(seedRolesCommand);
+
+        LOGGER.info("Roles seeding verification finished for {} at {}",
+                applicationName, currentTimestamp());
+    }
+
+    private Timestamp currentTimestamp() {
+        return new Timestamp(System.currentTimeMillis());
+    }
 }

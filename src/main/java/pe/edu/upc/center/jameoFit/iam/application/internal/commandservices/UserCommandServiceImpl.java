@@ -7,77 +7,72 @@ import pe.edu.upc.center.jameoFit.iam.application.internal.outboundservices.toke
 import pe.edu.upc.center.jameoFit.iam.domain.model.aggregates.User;
 import pe.edu.upc.center.jameoFit.iam.domain.model.commands.SignInCommand;
 import pe.edu.upc.center.jameoFit.iam.domain.model.commands.SignUpCommand;
+import pe.edu.upc.center.jameoFit.iam.domain.model.entities.Role;
+import pe.edu.upc.center.jameoFit.iam.domain.model.valueobjects.Roles;
 import pe.edu.upc.center.jameoFit.iam.domain.services.UserCommandService;
 import pe.edu.upc.center.jameoFit.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import pe.edu.upc.center.jameoFit.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
-/**
- * Profile command service implementation
- * <p>
- *     This class implements the {@link UserCommandService} interface and provides the implementation for the
- *     {@link SignInCommand} and {@link SignUpCommand} commands.
- * </p>
- */
 @Service
 public class UserCommandServiceImpl implements UserCommandService {
 
-  private final UserRepository userRepository;
-  private final HashingService hashingService;
-  private final TokenService tokenService;
+    private final UserRepository userRepository;
+    private final HashingService hashingService;
+    private final TokenService tokenService;
+    private final RoleRepository roleRepository;
 
-  private final RoleRepository roleRepository;
+    public UserCommandServiceImpl(UserRepository userRepository,
+                                  HashingService hashingService,
+                                  TokenService tokenService,
+                                  RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.hashingService = hashingService;
+        this.tokenService = tokenService;
+        this.roleRepository = roleRepository;
+    }
 
-  public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService,
-      TokenService tokenService, RoleRepository roleRepository) {
+    @Override
+    public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
+        var userOpt = userRepository.findByUsername(command.username());
+        if (userOpt.isEmpty())
+            throw new RuntimeException("Profile not found");
+        var user = userOpt.get();
+        if (!hashingService.matches(command.password(), user.getPassword()))
+            throw new RuntimeException("Invalid password");
 
-    this.userRepository = userRepository;
-    this.hashingService = hashingService;
-    this.tokenService = tokenService;
-    this.roleRepository = roleRepository;
-  }
+        var token = tokenService.generateToken(user.getUsername());
+        return Optional.of(ImmutablePair.of(user, token));
+    }
 
-  /**
-   * Handle the sign-in command
-   * <p>
-   *     This method handles the {@link SignInCommand} command and returns the user and the token.
-   * </p>
-   * @param command the sign-in command containing the username and password
-   * @return and optional containing the user matching the username and the generated token
-   * @throws RuntimeException if the user is not found or the password is invalid
-   */
-  @Override
-  public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
-    var user = userRepository.findByUsername(command.username());
-    if (user.isEmpty())
-      throw new RuntimeException("Profile not found");
-    if (!hashingService.matches(command.password(), user.get().getPassword()))
-      throw new RuntimeException("Invalid password");
+    @Override
+    public Optional<User> handle(SignUpCommand command) {
+        if (userRepository.existsByUsername(command.username()))
+            throw new RuntimeException("Username already exists");
 
-    var token = tokenService.generateToken(user.get().getUsername());
-    return Optional.of(ImmutablePair.of(user.get(), token));
-  }
+        // ✅ SOLUCIÓN: asociar roles existentes, no crear nuevos
+        Set<Role> rolesToAssign = new HashSet<>();
+        if (command.roles() != null && !command.roles().isEmpty()) {
+            for (var roleVO : command.roles()) {
+                var roleEntity = roleRepository.findByName(roleVO.getName())
+                        .orElseThrow(() -> new RuntimeException("Role not found: " + roleVO.getName()));
+                rolesToAssign.add(roleEntity);
+            }
+        } else {
+            // Asignar ROLE_USER por defecto si no se envían roles
+            var defaultRole = roleRepository.findByName(Roles.valueOf("ROLE_USER"))
+                    .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
+            rolesToAssign.add(defaultRole);
+        }
 
-  /**
-   * Handle the sign-up command
-   * <p>
-   *     This method handles the {@link SignUpCommand} command and returns the user.
-   * </p>
-   * @param command the sign-up command containing the username and password
-   * @return the created user
-   */
-  @Override
-  public Optional<User> handle(SignUpCommand command) {
-    if (userRepository.existsByUsername(command.username()))
-      throw new RuntimeException("Username already exists");
-    var roles = command.roles().stream()
-        .map(role ->
-            roleRepository.findByName(role.getName())
-                .orElseThrow(() -> new RuntimeException("Role name not found")))
-        .toList();
-    var user = new User(command.username(), hashingService.encode(command.password()), roles);
-    userRepository.save(user);
-    return userRepository.findByUsername(command.username());
-  }
+        var user = new User(command.username(), hashingService.encode(command.password()));
+        user.setRoles(rolesToAssign);
+
+        userRepository.save(user);
+
+        return userRepository.findByUsername(command.username());
+    }
 }
