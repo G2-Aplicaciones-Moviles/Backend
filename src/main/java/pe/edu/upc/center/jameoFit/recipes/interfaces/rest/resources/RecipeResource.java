@@ -11,7 +11,7 @@ public record RecipeResource(
         String difficulty,
         String category,
         String recipeType,
-        List<String> ingredients
+        List<RecipeIngredientResource> recipeIngredients
 ) {}
 
 
