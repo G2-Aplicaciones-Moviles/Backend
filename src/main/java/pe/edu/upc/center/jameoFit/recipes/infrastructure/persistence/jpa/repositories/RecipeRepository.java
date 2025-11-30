@@ -11,4 +11,5 @@ import java.util.List;
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     boolean existsByName(String name);
     List<Recipe> findAllByCategoryId(Long categoryId);
+    List<Recipe> findAllByAssignedToProfileId(int assignedToProfileId);
 }

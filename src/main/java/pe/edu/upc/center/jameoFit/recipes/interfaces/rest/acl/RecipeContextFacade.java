@@ -44,8 +44,16 @@ public class RecipeContextFacade {
                 .map(RecipeResourceFromEntityAssembler::toResourceFromEntity);
     }
 
-    public int create(CreateRecipeResource resource) {
-        var cmd = CreateRecipeCommandFromResourceAssembler.toCommandFromResource(resource);
+    public int create(
+            CreateRecipeResource resource,
+            Long createdByNutritionistId,
+            Integer assignedToProfileId) {
+
+        var cmd = CreateRecipeCommandFromResourceAssembler.toCommandFromResource(
+                resource,
+                createdByNutritionistId,
+                assignedToProfileId
+        );
         return commandService.handle(cmd);
     }
 

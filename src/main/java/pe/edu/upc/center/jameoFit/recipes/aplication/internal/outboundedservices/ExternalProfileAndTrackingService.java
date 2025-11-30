@@ -2,6 +2,7 @@ package pe.edu.upc.center.jameoFit.recipes.aplication.internal.outboundedservice
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import pe.edu.upc.center.jameoFit.nutritionists.domain.model.aggregates.Nutritionist;
 import pe.edu.upc.center.jameoFit.profiles.interfaces.acl.UserProfilesContextFacade;
 import pe.edu.upc.center.jameoFit.tracking.interfaces.acl.TrackingContextFacade;
 import pe.edu.upc.center.jameoFit.recipes.domain.model.valueobjects.UserId;
@@ -27,6 +28,11 @@ public class ExternalProfileAndTrackingService {
         this.trackingContextFacade = trackingContextFacade;
     }
 
+    public String getNutritionistNameOrDefault(Long userId) {
+        return nutritionistRepository.findByUserId(userId)
+                .map(Nutritionist::getFullName)
+                .orElse("Autor Desconocido (ID: " + userId + ")");
+    }
     public void validateUserProfile(UserId userId) {
         if (!userProfilesContextFacade.existsProfileById(userId.userId())) {
             throw new IllegalArgumentException(
