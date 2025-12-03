@@ -41,9 +41,6 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
             throw new IllegalArgumentException("A recipe with the name " + command.name() + " already exists.");
         }
 
-        // Validar existencia de UserId
-        externalProfileAndTrackingService.validateUserExists(new UserId(command.userId()));
-
         var category = categoryRepository.findById(command.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
@@ -51,13 +48,15 @@ public class RecipeCommandServiceImpl implements RecipeCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Recipe type not found"));
 
         var recipe = new Recipe(
-                command.userId(),
                 command.name(),
                 command.description(),
                 command.preparationTime(),
                 command.difficulty(),
                 category,
-                recipeType
+                recipeType,
+                // Nuevos campos del command
+                command.createdByNutritionistId(),
+                command.assignedToProfileId()
         );
 
         try {

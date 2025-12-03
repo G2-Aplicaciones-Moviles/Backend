@@ -37,7 +37,7 @@ public class NutritionistCommandServiceImpl implements NutritionistCommandServic
 
     @Override
     public Optional<Nutritionist> handle(UpdateNutritionistCommand command) {
-        return repository.findById(command.nutritionistId().intValue())
+        return repository.findById(command.nutritionistId())
                 .map(existing -> {
                     existing.updateInfo(
                             command.fullName(),
