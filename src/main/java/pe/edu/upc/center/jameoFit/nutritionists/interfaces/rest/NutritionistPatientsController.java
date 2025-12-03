@@ -9,9 +9,11 @@ import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.CreateNutr
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.ApprovePatientCommand;
 
 import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.resources.CreateNutritionistPatientResource;
+import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.resources.DeleteNutritionistPatientResource;
 import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.resources.NutritionistPatientResource;
 
 import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.transform.CreateNutritionistPatientCommandFromResourceAssembler;
+import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.transform.DeleteNutritionistPatientCommandFromResourceAssembler;
 import pe.edu.upc.center.jameoFit.nutritionists.interfaces.rest.transform.NutritionistPatientResourceFromEntityAssembler;
 
 import java.util.List;
@@ -42,6 +44,18 @@ public class NutritionistPatientsController {
     public ResponseEntity<?> approve(@PathVariable Long id) {
         var updated = commandService.handle(new ApprovePatientCommand(id));
         return updated
+                .map(NutritionistPatientResourceFromEntityAssembler::toResourceFromEntity)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> delete(@RequestBody DeleteNutritionistPatientResource resource) {
+        var deleted = commandService.handle(
+                DeleteNutritionistPatientCommandFromResourceAssembler.toCommandFromResource(resource)
+        );
+
+        return deleted
                 .map(NutritionistPatientResourceFromEntityAssembler::toResourceFromEntity)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

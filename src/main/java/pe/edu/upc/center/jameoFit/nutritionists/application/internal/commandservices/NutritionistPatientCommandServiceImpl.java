@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.aggregates.NutritionistPatient;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.CreateNutritionistPatientCommand;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.ApprovePatientCommand;
+import pe.edu.upc.center.jameoFit.nutritionists.domain.model.commands.DeleteNutritionistPatientCommand;
 import pe.edu.upc.center.jameoFit.nutritionists.domain.services.NutritionistPatientCommandService;
 import pe.edu.upc.center.jameoFit.nutritionists.infrastructure.persistence.jpa.repositories.NutritionistPatientRepository;
 
@@ -38,6 +39,15 @@ public class NutritionistPatientCommandServiceImpl implements NutritionistPatien
                 .map(r -> {
                     r.approve();
                     return repository.save(r);
+                });
+    }
+
+    @Override
+    public Optional<NutritionistPatient> handle(DeleteNutritionistPatientCommand command) {
+        return repository.findById(command.relationId())
+                .map(r -> {
+                    repository.delete(r);
+                    return r;
                 });
     }
 }
